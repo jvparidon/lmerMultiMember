@@ -29,6 +29,5 @@ weights_from_vector <- function(membership_vector, sep=",") {
   # fill in sparse weight matrix with 1s for each group membership
   weights[as.matrix(idx)] <- 1
   # return transposed sparse weight matrix
-  #return(Matrix::t(weights))
   return(weights)
 }

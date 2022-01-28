@@ -33,10 +33,10 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
     if (length(w)>0) {
       M <- Matrix::Matrix(memb_mat[[w]])
       ## extract LHS (effect)
-      form <- as.formula(substitute(~z,list(z=fb[[i]][[2]])))
+      form <- as.formula(substitute(~z, list(z=fb[[i]][[2]])))
       ## construct model matrix & compute Khatri-Rao product
-      X <- model.matrix(form,data=data)
-      Zt <- Matrix::KhatriRao(M,t(X),make.dimnames=TRUE)
+      X <- model.matrix(form, data=data)
+      Zt <- Matrix::KhatriRao(M, t(X), make.dimnames=TRUE)
       ## FIXME: mess with names?
       Ztlist[[fbnm]] <- Zt
       ## if necessary, add factor to data
