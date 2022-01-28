@@ -16,20 +16,21 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} (${{ matrix.r-version }})
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (${{ matrix.config.r-version }})
     strategy:
       fail-fast: false
       matrix:
-        - {os: windows-latest, r-version: 'release'}
-        - {os: macOS-latest, r-version: 'release'}
+        config:
+          - {os: windows-latest, r-version: 'release'}
+          - {os: macOS-latest, r-version: 'release'}
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up R ${{ matrix.r-version }}
+      - name: Set up R ${{ matrix.config.r-version }}
         uses: r-lib/actions/setup-r@f57f1301a053485946083d7a45022b278929a78a
         with:
-          r-version: ${{ matrix.r-version }}
+          r-version: ${{ matrix.config.r-version }}
       - name: Install dependencies
         run: |
           install.packages(c("remotes", "rcmdcheck"))
