@@ -3,7 +3,8 @@ Title: Multimember Random Effects Wrapper for lme4
 Version: 0.0.1
 Authors@R: c(person("Jeroen", "van Paridon", , "jvparidon@gmail.com", role = c("aut", "cre"),
                     comment = c(ORCID = "0000-0002-5384-8772")),
-             person("Phillip", "Alday", , "???", role = c("aut"),
+             person("Ben", "Bolker", , , role = c("aut"),),
+             person("Phillip", "Alday", , , role = c("aut"),
                     comment = c(ORCID = "0000-0002-9984-5745")))
 Description: Provides a wrapper around lme4::lmer to allow for multimembership
     random effects. Includes helper functions for creating weight matrices.
