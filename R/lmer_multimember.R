@@ -58,5 +58,22 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
   devfun <- do.call(lme4::mkLmerDevfun, lmod)
   opt <- lme4::optimizeLmer(devfun)
   m1 <- lme4::mkMerMod(environment(devfun), opt, lmod$reTrms, fr=lmod$fr)
+  # convert model object to lmerModMultiMember
+  m1 <- as(m1, "lmerModMultiMember")
   return(m1)
 }
+
+#' @title Model object for multimembership mixed models
+#' @description The \code{lmerModMultiMember} class extends \code{lmerMod} (which extends
+#' \code{merMod}) from the \pkg{lme4}-package.
+#' @seealso \code{\link[lme4]{lmer}} and \code{\link[lme4]{merMod}}
+#' @export
+#' @importClassesFrom lme4 lmerMod
+#' @return An object of class \code{lmerModMultiMember} similar to
+#' \code{lmerMod} objects (see \code{\link[lme4]{merMod}}) with extra information
+#' about the multimembership random effects.
+lmerModMultiMember <-
+  setClass("lmerModMultiMember",
+           contains = c("lmerMod"),
+           representation = representation(n_levels="numeric")
+           )

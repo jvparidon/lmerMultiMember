@@ -2,3 +2,5 @@
 
 export(lmer_multimember)
 export(weights_from_vector)
+exportClasses(lmerModMultiMember)
+importClassesFrom(lme4,lmerMod)
