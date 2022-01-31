@@ -2,7 +2,7 @@
 % Please edit documentation in R/lmer_multimember.R
 \name{lmer_multimember}
 \alias{lmer_multimember}
-\title{Multimembership random effects}
+\title{Linear mixed effects model with multimembership random effects}
 \usage{
 lmer_multimember(formula, data, memb_mat = list(), ...)
 }
@@ -19,7 +19,7 @@ lmer_multimember(formula, data, memb_mat = list(), ...)
 lme4 model object
 }
 \description{
-Provides a wrapper around lme4::lmer to allow for multimembership random effects
+Version of lme4::lmer to allow for multimembership random effects
 }
 \examples{
 df <- data.frame(
