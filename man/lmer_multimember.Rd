@@ -4,16 +4,28 @@
 \alias{lmer_multimember}
 \title{Multimembership random effects}
 \usage{
-lmer_multimember(formula, data, memb_mat = list(), ...)
+lmer_multimember(
+  formula,
+  data = NULL,
+  REML = TRUE,
+  control = lme4::lmerControl(),
+  start = NULL,
+  verbose = 0L,
+  subset,
+  weights,
+  na.action,
+  offset,
+  contrasts = NULL,
+  devFunOnly = FALSE,
+  memberships = list()
+)
 }
 \arguments{
 \item{formula}{mixed model formula}
 
 \item{data}{data frame (possibly but not necessarily containing factors}
 
-\item{memb_mat}{list of weights matrices  with which to replace Zt components}
-
-\item{...}{additional arguments to pass through to lme4::lmer}
+\item{memberships}{list of weights matrices  with which to replace Zt components}
 }
 \value{
 lme4 model object
@@ -23,10 +35,10 @@ Provides a wrapper around lme4::lmer to allow for multimembership random effects
 }
 \examples{
 df <- data.frame(
-  x = seq(5),
-  y = seq(5),
-  memberships = c("a,b,c", "a,c", "a", "b", "b,a")
+  x = seq(60) + runif(60, 0, 10),
+  y = seq(60) + rep(runif(6, 0, 10), 10),
+  memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
 )
 weights <- weights_from_vector(df$memberships)
-lmer_multimember(y ~ x + (1|members), df, memb_mat=list(members=weights))
+lmer_multimember(y ~ x + (1|members), df, memberships=list(members=weights))
 }

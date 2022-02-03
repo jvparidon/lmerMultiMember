@@ -3,30 +3,40 @@
 #' @name lmer_multimember
 #' @param formula mixed model formula
 #' @param data data frame (possibly but not necessarily containing factors
-#' @param memb_mat list of weights matrices  with which to replace Zt components
-#' @param ... additional arguments to pass through to lme4::lmer
+#' @param memberships list of weights matrices  with which to replace Zt components
 #' @return lme4 model object
 #' @export
 #' @examples
 #' df <- data.frame(
-#'   x = seq(5),
-#'   y = seq(5),
-#'   memberships = c("a,b,c", "a,c", "a", "b", "b,a")
+#'   x = seq(60) + runif(60, 0, 10),
+#'   y = seq(60) + rep(runif(6, 0, 10), 10),
+#'   memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
 #' )
 #' weights <- weights_from_vector(df$memberships)
-#' lmer_multimember(y ~ x + (1|members), df, memb_mat=list(members=weights))
-lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
+#' lmer_multimember(y ~ x + (1|members), df, memberships=list(members=weights))
+lmer_multimember <- function(formula, data=NULL, REML = TRUE,
+                 control = lme4::lmerControl(), start = NULL
+                 , verbose = 0L
+                 , subset, weights, na.action, offset
+                 , contrasts = NULL
+                 , devFunOnly=FALSE
+                 , memberships = list()
+) {
+  mc <- mcout <- match.call()
+  missCtrl <- missing(control)
+  ## see functions in modular.R for the body ..
+  if (!missCtrl && !inherits(control, "lmerControl")) {
+    if(!is.list(control)) stop("'control' is not a list; use lmerControl()")
+    ## back-compatibility kluge
+    warning("passing control as list is deprecated: please use lmerControl() instead",
+            immediate.=TRUE)
+    control <- do.call(lme4::lmerControl, control)
+  }
+  mc$control <- control ## update for  back-compatibility kluge
 
-  ## FIXME: pass ... through appropriately -> not all args should be passed to same function?
-  # so: use lme4::lmer to figure out which args need to be passed through, and where they go
-  # e.g. control and start go to optimizerLmer()
-  # but devFunOnly needs to be caught in an if/else block
-  # and where does the arg contrasts go? etc. etc.
-
-  ## FIXME: test dimensions
-
+  ################ START lmerMultiMember block ################
   # get names of multimembership variables
-  mnms <- names(memb_mat)
+  mnms <- names(memberships)
 
   # get index of bars (location of random effects) in model formula
   fb <- lme4::findbars(formula)
@@ -46,7 +56,7 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
 
     if (length(w) > 0) {
 
-      M <- Matrix::Matrix(memb_mat[[w]])
+      M <- Matrix::Matrix(memberships[[w]])
 
       ## extract LHS (effect)
       form <- as.formula(substitute(~z, list(z=fb[[i]][[2]])))
@@ -62,32 +72,63 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
       if (!gvars[i] %in% names(data)) {
         ## if the factor has non-trivial ordering, it should be included
         ## in the data.  Do we have to worry about ordering of Z? test!
-        data[[gvars[i]]] <- rep_len(factor(rownames(memb_mat[[w]])), dim(data)[1])
+        data[[gvars[i]]] <- rep_len(factor(rownames(memberships[[w]])), dim(data)[1])
       }
     }
   }
+  ################ END lmerMultiMember block ################
 
-  ## call lFormula  (FIXME: allow glFormula) -> is it easiest to have a separate lmerMultiMember::glmer function
-  # that passes all its arguments through to lmerMultiMember::lmer, and then catch that here
-  # and run it through lme4::glFormula instead? (will that work?)
-  lmod <- lme4::lFormula(formula, data=data)
+  ## https://github.com/lme4/lme4/issues/50
+  ## parse data and formula
+  #mc[[1]] <- quote(lme4::lFormula)
+  #lmod <- eval(mc, parent.frame(1L))
+  #mcout$formula <- lmod$formula
+  #lmod$formula <- NULL
+  # not sure why this parent.frame construction was used here
+  # but it messes up the added (fake) factors that we need for the multimembership model to work right
+
+  ################ START lmerMultiMember block ################
+  ## parse the formula and data
+  lmod <- lme4::lFormula(formula, data)
+  mcout$formula <- lmod$formula
+  lmod$formula <- NULL
 
   ## substitute new Ztlist elements
   for (m in names(Ztlist)) {
     lmod$reTrms$Ztlist[[m]] <- Ztlist[[m]]
   }
   lmod$reTrms$Zt <- do.call(rbind, lmod$reTrms$Ztlist)
+  ################ END lmerMultiMember block ################
 
-  ## finish fitting
-  devfun <- do.call(lme4::mkLmerDevfun, lmod)
-  opt <- lme4::optimizeLmer(devfun)
-  m1 <- lme4::mkMerMod(environment(devfun), opt, lmod$reTrms, fr=lmod$fr)
+  ## create deviance function for covariance parameters (theta)
+  devfun <- do.call(lme4::mkLmerDevfun,
+                    c(lmod,
+                      list(start=start, verbose=verbose, control=control)))
+  if (devFunOnly) return(devfun)
+  ## optimize deviance function over covariance parameters
+  if (identical(control$optimizer,"none"))
+    stop("deprecated use of optimizer=='none'; use NULL instead")
+  opt <- if (length(control$optimizer)==0) {
+    s <- getStart(start, environment(devfun)$pp)
+    list(par=s,fval=devfun(s),
+         conv=1000,message="no optimization")
+  }  else {
+    lme4::optimizeLmer(devfun, optimizer = control$optimizer,
+                 restart_edge = control$restart_edge,
+                 boundary.tol = control$boundary.tol,
+                 control = control$optCtrl,
+                 verbose=verbose,
+                 start=start,
+                 calc.derivs=control$calc.derivs,
+                 use.last.params=control$use.last.params)
+  }
+  cc <- lme4::checkConv(attr(opt,"derivs"), opt$par,
+                  ctrl = control$checkConv,
+                  lbound = environment(devfun)$lower)
 
-  # convert model object to lmerModMultiMember -> does this need any additional slots/attributes?
-  # or do we just want to output some additional information when summary.lmerModMultiMember is called?
-  # e.g. for each random effect: don't show number of levels, but number of groups & number of unique group members
-  m1 <- as(m1, "lmerModMultiMember")
-  return(m1)
+  ## prepare output
+  return(as(lme4::mkMerMod(environment(devfun), opt, lmod$reTrms, fr = lmod$fr,
+           mc = mcout, lme4conv=cc), "lmerModMultiMember"))
 }
 
 #' @title Model object for multimembership mixed models
