@@ -1,9 +1,9 @@
 #' @title Multimembership random effects
 #' @description Provides a wrapper around lme4::lmer to allow for multimembership random effects
-#' @name lmer_multimember
+#' @name lmer
 #' @param formula mixed model formula
 #' @param data data frame (possibly but not necessarily containing factors
-#' @param memb_mat list of weights matrices  with which to replace Zt components
+#' @param memberships list of weights matrices  with which to replace Zt components
 #' @param ... additional arguments to pass through to lme4::lmer
 #' @return lme4 model object
 #' @export

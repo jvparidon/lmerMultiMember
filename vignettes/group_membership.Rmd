@@ -1,0 +1,83 @@
+---
+title: "Group membership models using lmerMulitMember"
+output: rmarkdown::html_vignette
+author:
+    - Ben Bolker, adapted by Phillip Alday
+vignette: >
+  %\VignetteIndexEntry{Group membership models using lmerMulitMember}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r}
+library(lmerMultiMember)
+library(broom.mixed)
+library(ggplot2); theme_set(theme_bw())
+library(Matrix)
+```
+
+Consider a situation where we have multiple items of some sort which have associated effects, but we can’t association observations with single items; instead, each observation is associated with a group of items. (Two examples which have come up are (1) authorship of papers and (2) hockey players on a team.) These are not quite identical to "multi-membership models" (in part because group membership is binary, i.e., not weighted), although similar techniques to those shown here could work for multi-membership models.
+
+Load packages (we don't really need anything beyond lmerMultiMember; the rest are for convenience/drawing pictures).
+
+Construct a simulated example: first, simulate the design (structure).
+
+```{r}
+nm <- 20
+nobs <- 500
+set.seed(101)
+## choose items for observations
+pres <- matrix(rbinom(nobs*nm, prob=0.25, size=1),nrow=nobs,ncol=nm)
+dimnames(pres) <- list(NULL,LETTERS[seq(nm)])
+pres[1:5,]
+```
+
+```{r}
+table(rowSums(pres))
+```
+
+```{r, fig.width=6, fig.height=4}
+image(Matrix(pres),ylim=c(1,10),sub="",ylab="Observation",
+      xlab="Item",
+      ## draw tick labels at top
+      scales=list(at=1:20,x=list(labels=colnames(pres),
+                                 alternating=2)))
+```
+
+Since we chose which items/individuals to include for each observation randomly and independently (Bernoulli with probability 0.25), we have a highly variable number of individuals present for different observations (1-11). This would be realistic for some examples (authorship), unrealistic for others (hockey) ... I don't think it really makes much difference computationally (statistically, having some observations with a single member must make estimation more powerful ...) The 0/1 matrix (indicator variable for whether item $i$ is included in observation $j$) is convenient, and will turn out to be the form we need for inclusion in the model. It should be fairly straightforward to convert other forms (e.g. a list of sets of items associated with each observation) to this form ...
+
+Now simulate the response variable.
+
+```{r, results=FALSE}
+b <- rnorm(nm)  ## item-level effects
+## n.b. get in trouble if we don't add residual error
+## (theta is scaled relative to residual error)
+## here, use theta=sigma=1
+y <- c(pres %*% b) +rnorm(nobs,sd=1)
+```
+
+
+Fit and the results look OK (correct item and residual variance estimated):
+```{r}
+# not yet sure why this fails without scoping
+m1 <- lmerMultiMember::lmer(y ~ 1 + (1|membership), 
+                            data=data.frame(y=y, x=rep(1, nobs)), 
+                            memberships=list(membership=t(pres)))
+```
+
+The conditional modes by item look good:
+```{r, fig.width=6, fig.height=4}
+dd <- tidy(m1, effects="ran_vals")
+dd <- transform(dd, level=reorder(level,estimate))
+truth <- data.frame(level=LETTERS[seq(nm)],estimate=b)
+ggplot(dd,aes(x=level,y=estimate))+
+    geom_pointrange(aes(ymin=estimate-2*std.error,
+              ymax=estimate+2*std.error))+coord_flip()+
+    geom_point(data=truth,colour="red")
+```
+
+Session info:
+```{r}
+sessionInfo()
+```
+
