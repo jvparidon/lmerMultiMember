@@ -1,10 +1,10 @@
 ---
-title: "Group membership models using lmerMulitMember"
+title: "Group membership models using lmerMultiMember"
 output: rmarkdown::html_vignette
 author:
     - Ben Bolker, adapted by Phillip Alday
 vignette: >
-  %\VignetteIndexEntry{Group membership models using lmerMulitMember}
+  %\VignetteIndexEntry{Group membership models using lmerMultiMember}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -59,10 +59,9 @@ y <- c(pres %*% b) +rnorm(nobs,sd=1)
 
 Fit and the results look OK (correct item and residual variance estimated):
 ```{r}
-# not yet sure why this fails without scoping
-m1 <- lmerMultiMember::lmer(y ~ 1 + (1|membership), 
-                            data=data.frame(y=y, x=rep(1, nobs)), 
-                            memberships=list(membership=t(pres)))
+m1 <- lmer(y ~ 1 + (1|membership), 
+           data=data.frame(y=y, x=rep(1, nobs)), 
+           memberships=list(membership=t(pres)))
 ```
 
 The conditional modes by item look good:
