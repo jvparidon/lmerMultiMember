@@ -15,5 +15,10 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Imports: Matrix, lme4, dplyr
 Suggests: 
+    knitr,
+    rmarkdown,
+    broom.mixed,
+    ggplot2,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr

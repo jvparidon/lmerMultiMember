@@ -1,21 +1,27 @@
 #' @title Multimembership random effects
 #' @description Provides a wrapper around lme4::lmer to allow for multimembership random effects
-#' @name lmer_multimember
+#' @name lmer
 #' @param formula mixed model formula
 #' @param data data frame (possibly but not necessarily containing factors
-#' @param memb_mat list of weights matrices  with which to replace Zt components
+#' @param memberships list of weights matrices  with which to replace Zt components
 #' @param ... additional arguments to pass through to lme4::lmer
 #' @return lme4 model object
 #' @export
 #' @examples
 #' df <- data.frame(
-#'   x = seq(5),
-#'   y = seq(5),
-#'   memberships = c("a,b,c", "a,c", "a", "b", "b,a")
+#'   x = seq(60) + runif(60, 0, 10),
+#'   y = seq(60) + rep(runif(6, 0, 10), 10),
+#'   memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
 #' )
 #' weights <- weights_from_vector(df$memberships)
-#' lmer_multimember(y ~ x + (1|members), df, memb_mat=list(members=weights))
-lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
+#' lmer(y ~ x + (1|members), df, memberships=list(members=weights))
+lmer <- function(formula, data, memberships=NULL, ...) {
+  ## FIXME: docstring
+
+  orig_call <- match.call()
+  # TODO: detect if lmerTest is loaded
+  if(is.null(memberships)) return(lme4::lmer(formula, data, ...))
+
 
   ## FIXME: pass ... through appropriately -> not all args should be passed to same function?
   # so: use lme4::lmer to figure out which args need to be passed through, and where they go
@@ -26,7 +32,7 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
   ## FIXME: test dimensions
 
   # get names of multimembership variables
-  mnms <- names(memb_mat)
+  mnms <- names(memberships)
 
   # get index of bars (location of random effects) in model formula
   fb <- lme4::findbars(formula)
@@ -46,7 +52,7 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
 
     if (length(w) > 0) {
 
-      M <- Matrix::Matrix(memb_mat[[w]])
+      M <- Matrix::Matrix(memberships[[w]])
 
       ## extract LHS (effect)
       form <- as.formula(substitute(~z, list(z=fb[[i]][[2]])))
@@ -62,14 +68,12 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
       if (!gvars[i] %in% names(data)) {
         ## if the factor has non-trivial ordering, it should be included
         ## in the data.  Do we have to worry about ordering of Z? test!
-        data[[gvars[i]]] <- rep_len(factor(rownames(memb_mat[[w]])), dim(data)[1])
+        data[[gvars[i]]] <- rep_len(factor(rownames(memberships[[w]])), dim(data)[1])
       }
     }
   }
 
-  ## call lFormula  (FIXME: allow glFormula) -> is it easiest to have a separate lmerMultiMember::glmer function
-  # that passes all its arguments through to lmerMultiMember::lmer, and then catch that here
-  # and run it through lme4::glFormula instead? (will that work?)
+
   lmod <- lme4::lFormula(formula, data=data)
 
   ## substitute new Ztlist elements
@@ -83,12 +87,24 @@ lmer_multimember <- function(formula, data, memb_mat=list(), ...) {
   opt <- lme4::optimizeLmer(devfun)
   m1 <- lme4::mkMerMod(environment(devfun), opt, lmod$reTrms, fr=lmod$fr)
 
+  # this is our baby now
+  m1@call <- orig_call
+
   # convert model object to lmerModMultiMember -> does this need any additional slots/attributes?
   # or do we just want to output some additional information when summary.lmerModMultiMember is called?
   # e.g. for each random effect: don't show number of levels, but number of groups & number of unique group members
   m1 <- as(m1, "lmerModMultiMember")
   return(m1)
 }
+
+#' @importFrom lme4 fixef
+#' @export
+lme4::fixef
+
+#' @importFrom lme4 ranef
+#' @export
+lme4::ranef
+
 
 #' @title Model object for multimembership mixed models
 #' @description The \code{lmerModMultiMember} class extends \code{lmerMod} (which extends

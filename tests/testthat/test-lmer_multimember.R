@@ -5,7 +5,7 @@ test_that("return type is lmerMod", {
     memberships = c("a,b,c", "a,c", "a", "b", "b,a")
   )
   weights <- weights_from_vector(df$memberships)
-  m <- lmer_multimember(y ~ x + (1|members), df, memb_mat=list(members=weights))
+  m <- lmer(y ~ x + (1|members), df, memberships=list(members=weights))
   expect_s4_class(m, "lmerMod")
 })
 
@@ -16,6 +16,15 @@ test_that("return type is lmerModMultiMember", {
     memberships = c("a,b,c", "a,c", "a", "b", "b,a")
   )
   weights <- weights_from_vector(df$memberships)
-  m <- lmer_multimember(y ~ x + (1|members), df, memb_mat=list(members=weights))
+  m <- lmer(y ~ x + (1|members), df, memberships=list(members=weights))
   expect_s4_class(m, "lmerModMultiMember")
+})
+
+
+test_that("pass through to lme4 works", {
+  sleepstudy <- lme4::sleepstudy
+  l4 <- lme4::lmer(Reaction ~ Days + (1|Subject), sleepstudy)
+  mm <- lmerMultiMember::lmer(Reaction ~ Days + (1|Subject), sleepstudy)
+  expect_identical(fixef(l4), fixef(mm))
+  expect_identical(ranef(l4), ranef(mm))
 })
