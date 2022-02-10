@@ -22,11 +22,9 @@ lmer(
 \arguments{
 \item{formula}{mixed model formula}
 
-\item{data}{data frame (possibly but not necessarily containing factors}
-
 \item{memberships}{list of weights matrices  with which to replace Zt components}
 
-\item{...}{additional arguments to pass through to lme4::lmer}
+\item{...}{Other arguments as in \code{\link[lme4:lmer]{lme4::lmer()}}}
 }
 \value{
 lme4 model object
@@ -41,5 +39,8 @@ df <- data.frame(
   memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
 )
 weights <- weights_from_vector(df$memberships)
+# note that the grouping variable name is arbitrary -- it just has
+# to match the name in the list and doesn't need to correspond to a column name
+# in the data
 lmer(y ~ x + (1|members), df, memberships=list(members=weights))
 }

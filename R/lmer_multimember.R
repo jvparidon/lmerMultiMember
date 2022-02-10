@@ -2,9 +2,8 @@
 #' @description Provides a wrapper around lme4::lmer to allow for multimembership random effects
 #' @name lmer
 #' @param formula mixed model formula
-#' @param data data frame (possibly but not necessarily containing factors
 #' @param memberships list of weights matrices  with which to replace Zt components
-#' @param ... additional arguments to pass through to lme4::lmer
+#' @param ... Other arguments as in [lme4::lmer()]
 #' @return lme4 model object
 #' @export
 #' @import lme4
@@ -15,12 +14,14 @@
 #'   memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
 #' )
 #' weights <- weights_from_vector(df$memberships)
+#' # note that the grouping variable name is arbitrary -- it just has
+#' # to match the name in the list and doesn't need to correspond to a column name
+#' # in the data
 #' lmer(y ~ x + (1|members), df, memberships=list(members=weights))
 lmer <- function(formula, data = NULL, REML = TRUE, control = lme4::lmerControl(),
                  start = NULL, verbose = 0L, weights = NULL, na.action=na.omit,
                  offset = NULL, contrasts = NULL, devFunOnly = FALSE, memberships=NULL) {
   ## TODO: call weights_from_vector from within this function
-  ## FIXME: docstring
 
   orig_call <- match.call()
   # TODO: detect if lmerTest is loaded
