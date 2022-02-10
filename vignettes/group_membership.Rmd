@@ -16,7 +16,7 @@ library(ggplot2); theme_set(theme_bw())
 library(Matrix)
 ```
 
-Consider a situation where we have multiple items of some sort which have associated effects, but we can’t association observations with single items; instead, each observation is associated with a group of items. (Two examples which have come up are (1) authorship of papers and (2) hockey players on a team.) These are not quite identical to "multi-membership models" (in part because group membership is binary, i.e., not weighted), although similar techniques to those shown here could work for multi-membership models.
+Consider a situation where we have multiple items of some sort which have associated effects, but we can't association observations with single items; instead, each observation is associated with a group of items. (Two examples which have come up are (1) authorship of papers and (2) hockey players on a team.) These are not quite identical to "multi-membership models" (in part because group membership is binary, i.e., not weighted), although similar techniques to those shown here could work for multi-membership models.
 
 Load packages (we don't really need anything beyond lmerMultiMember; the rest are for convenience/drawing pictures).
 
@@ -74,6 +74,11 @@ ggplot(dd,aes(x=level,y=estimate))+
               ymax=estimate+2*std.error))+coord_flip()+
     geom_point(data=truth,colour="red")
 ```
+
+## example 
+
+
+## Session Info
 
 Session info:
 ```{r}
