@@ -23,8 +23,9 @@ test_that("return type is lmerModMultiMember", {
 
 test_that("pass through to lme4 works", {
   sleepstudy <- lme4::sleepstudy
-  l4 <- lme4::lmer(Reaction ~ Days + (1|Subject), sleepstudy)
-  mm <- lmerMultiMember::lmer(Reaction ~ Days + (1|Subject), sleepstudy)
+  l4 <- lme4::lmer(Reaction ~ Days + (1|Subject), sleepstudy, REML=FALSE)
+  mm <- lmerMultiMember::lmer(Reaction ~ Days + (1|Subject), sleepstudy, REML=FALSE)
   expect_identical(fixef(l4), fixef(mm))
   expect_identical(ranef(l4), ranef(mm))
+  expect(!lme4::isREML(mm), "REML passthrough failed")
 })
