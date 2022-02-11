@@ -132,7 +132,7 @@ lmer <- function(formula, data = NULL, REML = TRUE, control = lme4::lmerControl(
 #' # note that the grouping variable name is arbitrary -- it just has
 #' # to match the name in the list and doesn't need to correspond to a column name
 #' # in the data
-#' glmer(y ~ x + (1|members), df, memberships=list(members=weights))
+#' glmer(y ~ x + (1|members), df, family=binomial, memberships=list(members=weights))
 glmer <- function(formula, data = NULL, family, control = lme4::glmerControl(),
                  start = NULL, verbose = 0L, nAGQ = 1L, weights = NULL, na.action=na.omit,
                  offset = NULL, contrasts = NULL, devFunOnly = FALSE, memberships=NULL) {
@@ -188,7 +188,7 @@ glmer <- function(formula, data = NULL, family, control = lme4::glmerControl(),
     }
   }
 
-  glmod <- glFormula(formula, data=data, REML=REML,
+  glmod <- glFormula(formula, data=data, family=family,
                      weights=weights, na.action=na.action, offset=offset,
                      contrasts=contrasts, control=control)
 
@@ -240,6 +240,18 @@ glmer <- function(formula, data = NULL, family, control = lme4::glmerControl(),
 
     ## update deviance function to include fixed effects as inputs
     devfun <- updateGlmerDevfun(devfun, glmod$reTrms, nAGQ = nAGQ)
+
+    # updateStart is a utility function from lme4 that is necessary here
+    # but for some reason lme4 doesn't export it
+    updateStart <- function(start, theta) {
+      if (is.numeric(start)) {
+        theta
+      } else {
+        if (!is.null(start$theta))
+          start$theta <- theta
+        start
+      }
+    }
 
     if (control$nAGQ0initStep) {
       start <- updateStart(start,theta=opt$par)
