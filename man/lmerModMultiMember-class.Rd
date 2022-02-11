@@ -4,7 +4,7 @@
 \name{lmerModMultiMember-class}
 \alias{lmerModMultiMember-class}
 \alias{lmerModMultiMember}
-\title{Model object for multimembership mixed models}
+\title{Model object for multimembership linear mixed models}
 \value{
 An object of class \code{lmerModMultiMember} similar to
 \code{lmerMod} objects (see \code{\link[lme4]{merMod}}) with extra information
