@@ -1,4 +1,4 @@
-![Check](https://github.com/jvparidon/lmerMultiMember/actions/workflows/r.yml/badge.svg)
+[![build](https://github.com/jvparidon/lmerMultiMember/actions/workflows/r.yml/badge.svg)](https://github.com/jvparidon/lmerMultiMember/actions)
 [![codecov](https://codecov.io/gh/jvparidon/lmerMultiMember/branch/main/graph/badge.svg)](https://codecov.io/gh/jvparidon/lmerMultiMember)
 ## `lmerMultiMember`
 Wrapper around `lme4::lmer` and `lme4::glmer` to add support for multimembership random effects.  
