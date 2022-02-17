@@ -1,4 +1,4 @@
-![Check](https://github.com/jvparidon/lmerMultiMember/.github/workflows/r.yml/badge.svg)
+![Check](https://github.com/jvparidon/lmerMultiMember/actions/workflows/r.yml/badge.svg)
 ## `lmerMultiMember`
 Wrapper around `lme4::lmer` and `lme4::glmer` to add support for multimembership random effects.  
 This package was developed by Jeroen van Paridon and Phillip Alday, based on an initial worked example of a multiple membership linear mixed model authored by Ben Bolker.
