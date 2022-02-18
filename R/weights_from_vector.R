@@ -6,15 +6,15 @@
 #' @return sparse weight matrix
 #' @export
 #' @examples
-#' member_vec <-  c("a,b,c", "a,c", "a", "b", "b,a")
+#' member_vec <- c("a,b,c", "a,c", "a", "b", "b,a")
 #' weights_from_vector(member_vec)
-weights_from_vector <- function(membership_vector, sep=",") {
+weights_from_vector <- function(membership_vector, sep = ",") {
 
   # get number of observations
   nobs <- length(membership_vector)
 
   # split membership vector into list of vectors
-  membership_list <- strsplit(membership_vector, split=sep)
+  membership_list <- strsplit(membership_vector, split = sep)
 
   # create list of group membership indices
   idx <- stack(setNames(membership_list, seq_along(membership_list)))
@@ -43,8 +43,10 @@ weights_from_columns <- function(membership_columns) {
   nobs <- nrow(membership_columns)
 
   # create list of group membership indices
-  idx <- na.omit(stack(setNames(membership_columns,
-                                rep(1:nobs, ncol(membership_columns)))))
+  idx <- na.omit(stack(setNames(
+    membership_columns,
+    rep(1:nobs, ncol(membership_columns))
+  )))
 
   # hand off to idx_to_weights
   return(idx_to_weights(idx, nobs))
@@ -62,9 +64,9 @@ idx_to_weights <- function(idx, nobs) {
   # initialize sparse weight matrix with zeros
   weights <- Matrix::Matrix(
     0,
-    nrow=length(groups),
-    ncol=nobs,
-    dimnames=list(as.character(groups), as.character(seq(nobs)))
+    nrow = length(groups),
+    ncol = nobs,
+    dimnames = list(as.character(groups), as.character(seq(nobs)))
   )
 
   # fill in sparse weight matrix with 1s for each group membership

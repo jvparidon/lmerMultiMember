@@ -33,14 +33,19 @@ jobs:
           r-version: ${{ matrix.config.r-version }}
       - name: Set up pandoc
         uses: r-lib/actions/setup-pandoc@v2
-      - name: Install dependencies
-        run: |
-          install.packages(c("remotes", "rcmdcheck", "covr"))
-          remotes::install_deps(dependencies = TRUE)
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            rcmdcheck
+            covr
+            lintr
         shell: Rscript {0}
       - name: Check
-        run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
+        run: rcmdcheck::rcmdcheck(error_on = "error")
         shell: Rscript {0}
-      - name: Test coverage
+      - name: Coverage
         run: covr::codecov()
+        shell: Rscript {0}
+      - name: Lint
+        run: lintr::lint_package()
         shell: Rscript {0}
