@@ -39,7 +39,6 @@ jobs:
             rcmdcheck
             covr
             lintr
-        shell: Rscript {0}
       - name: Check
         run: rcmdcheck::rcmdcheck(error_on = "error")
         shell: Rscript {0}
