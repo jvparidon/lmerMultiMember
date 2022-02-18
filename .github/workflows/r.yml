@@ -40,7 +40,7 @@ jobs:
             covr
             lintr
       - name: Check
-        run: rcmdcheck::rcmdcheck(error_on = "error")
+        run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}
       - name: Coverage
         run: covr::codecov()
