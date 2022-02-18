@@ -23,7 +23,7 @@ glmer(
 \arguments{
 \item{formula}{mixed model formula}
 
-\item{memberships}{list of weights matrices  with which to replace Zt components}
+\item{memberships}{list of weights matrices to replace Zt components with}
 
 \item{...}{Other arguments as in \code{\link[lme4:glmer]{lme4::glmer()}}}
 }
@@ -31,17 +31,23 @@ glmer(
 lme4 model object
 }
 \description{
-Provides a wrapper around lme4::glmer to allow for multimembership random effects
+lme4::lmer but with multimembership random effects
 }
 \examples{
+
 df <- data.frame(
   x = runif(60, 0, 1),
   y = rbinom(60, 1, 0.6),
   memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
 )
 weights <- weights_from_vector(df$memberships)
+
 # note that the grouping variable name is arbitrary -- it just has
-# to match the name in the list and doesn't need to correspond to a column name
-# in the data
-glmer(y ~ x + (1|members), df, family=binomial, memberships=list(members=weights))
+# to match the name in the list and doesn't need to correspond to a column
+# name in the data
+glmer(y ~ x + (1 | members),
+  data = df,
+  family = binomial,
+  memberships = list(members = weights)
+)
 }

@@ -18,6 +18,6 @@ sparse weight matrix
 Provides a helper function for generating weight matrices
 }
 \examples{
-member_vec <-  c("a,b,c", "a,c", "a", "b", "b,a")
+member_vec <- c("a,b,c", "a,c", "a", "b", "b,a")
 weights_from_vector(member_vec)
 }
