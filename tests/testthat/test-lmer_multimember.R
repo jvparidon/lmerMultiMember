@@ -153,6 +153,15 @@ test_that("glmer with invalid start parameter returns an error", {
                               memberships = list(members = weights),
                               start = list(heron = .8)
   ))
+})
+
+test_that("glmer with fixef start parameter & nAGQ = 0 returns an error", {
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  weights <- weights_from_vector(df$memberships)
   expect_error(lmerMultiMember::glmer(y ~ x + (1 | members),
                                       data = df,
                                       family = binomial,
