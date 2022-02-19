@@ -82,21 +82,30 @@ test_that("glmer with devFunOnly = TRUE works", {
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   weights <- weights_from_vector(df$memberships)
-  m1 <- lmerMultiMember::glmer(y ~ x + (1 | members),
+  m <- lmerMultiMember::glmer(y ~ x + (1 | members),
                               data = df,
                               family = binomial,
                               memberships = list(members = weights),
                               devFunOnly = TRUE
   )
-  expect_identical(typeof(m1), "closure")
-  m2 <- lmerMultiMember::glmer(y ~ x + (1 | members),
+  expect_identical(typeof(m), "closure")
+})
+
+test_that("glmer with devFunOnly = TRUE & nAGQ = 0 works", {
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  weights <- weights_from_vector(df$memberships)
+  m <- lmerMultiMember::glmer(y ~ x + (1 | members),
                               data = df,
                               family = binomial,
                               memberships = list(members = weights),
                               nAGQ = 0,
                               devFunOnly = TRUE
   )
-  expect_identical(typeof(m2), "closure")
+  expect_identical(typeof(m), "closure")
 })
 
 test_that("glmer with start = list(theta = .8) works", {
