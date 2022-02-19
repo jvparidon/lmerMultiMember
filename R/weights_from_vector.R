@@ -5,6 +5,7 @@
 #' @param sep separator that delimits group memberships in membership_vector
 #' @return sparse weight matrix
 #' @export
+#' @import stats utils methods
 #' @examples
 #' member_vec <- c("a,b,c", "a,c", "a", "b", "b,a")
 #' weights_from_vector(member_vec)
