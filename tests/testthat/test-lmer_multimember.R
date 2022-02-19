@@ -59,3 +59,34 @@ test_that("glmer pass through to lme4 works", {
   expect_identical(fixef(l4), fixef(mm))
   expect_identical(ranef(l4), ranef(mm))
 })
+
+test_that("lmer with devFunOnly = TRUE works", {
+  sleepstudy <- lme4::sleepstudy
+  l4 <- lme4::lmer(Reaction ~ Days + (1 | Subject),
+                   data = sleepstudy,
+                   REML = FALSE,
+                   devFunOnly = TRUE
+  )
+  mm <- lmerMultiMember::lmer(Reaction ~ Days + (1 | Subject),
+                              data = sleepstudy,
+                              REML = FALSE,
+                              devFunOnly = TRUE
+  )
+  expect_identical(typeof(l4), typeof(mm))
+})
+
+test_that("glmer with devFunOnly = TRUE works", {
+  cbpp <- lme4::cbpp
+  l4 <- lme4::glmer(cbind(incidence, size - incidence) ~ period + (1 | herd),
+                    data = cbpp,
+                    family = binomial,
+                    devFunOnly = TRUE
+  )
+  mm <- lmerMultiMember::glmer(
+    cbind(incidence, size - incidence) ~ period + (1 | herd),
+    data = cbpp,
+    family = binomial,
+    devFunOnly = TRUE
+  )
+  expect_identical(typeof(l4), typeof(mm))
+})
