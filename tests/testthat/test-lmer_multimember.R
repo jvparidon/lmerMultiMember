@@ -82,13 +82,21 @@ test_that("glmer with devFunOnly = TRUE works", {
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   weights <- weights_from_vector(df$memberships)
-  m <- lmerMultiMember::glmer(y ~ x + (1 | members),
+  m1 <- lmerMultiMember::glmer(y ~ x + (1 | members),
                               data = df,
                               family = binomial,
                               memberships = list(members = weights),
                               devFunOnly = TRUE
   )
-  expect_identical(typeof(m), "closure")
+  expect_identical(typeof(m1), "closure")
+  m2 <- lmerMultiMember::glmer(y ~ x + (1 | members),
+                              data = df,
+                              family = binomial,
+                              memberships = list(members = weights),
+                              nAGQ = 0,
+                              devFunOnly = TRUE
+  )
+  expect_identical(typeof(m2), "closure")
 })
 
 test_that("glmer with start = list(theta = .8) works", {
@@ -103,6 +111,22 @@ test_that("glmer with start = list(theta = .8) works", {
                               family = binomial,
                               memberships = list(members = weights),
                               start = list(theta = .8)
+  )
+  # TODO: add an expect_identical of some variety here?
+})
+
+test_that("glmer with start = .8 works", {
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  weights <- weights_from_vector(df$memberships)
+  m <- lmerMultiMember::glmer(y ~ x + (1 | members),
+                              data = df,
+                              family = binomial,
+                              memberships = list(members = weights),
+                              start = .8
   )
   # TODO: add an expect_identical of some variety here?
 })
