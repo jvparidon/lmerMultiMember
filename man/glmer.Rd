@@ -2,7 +2,7 @@
 % Please edit documentation in R/lmer_multimember.R
 \name{glmer}
 \alias{glmer}
-\title{Multimembership random effects}
+\title{multimembership generalized linear mixed effects models}
 \usage{
 glmer(
   formula,
@@ -21,17 +21,95 @@ glmer(
 )
 }
 \arguments{
-\item{formula}{mixed model formula}
+\item{formula}{a two-sided linear formula object describing both the
+    fixed-effects and random-effects part of the model, with the response
+    on the left of a \code{~} operator and the terms, separated by
+    \code{+} operators, on the right.  Random-effects terms are
+    distinguished by vertical bars (\code{"|"}) separating expressions
+    for design matrices from grouping factors.}
+
+\item{data}{an optional data frame containing the variables named in
+    \code{formula}.  By default the variables are taken from the
+    environment from which \code{lmer} is called.  While \code{data} is
+    optional, the package authors \emph{strongly} recommend its use,
+    especially when later applying methods such as \code{update} and
+    \code{drop1} to the fitted model (\emph{such methods are not
+    guaranteed to work properly if \code{data} is omitted}).  If
+    \code{data} is omitted, variables will be taken from the environment
+    of \code{formula} (if specified as a formula) or from the parent
+    frame (if specified as a character vector).}
+
+\item{family}{a GLM family, see \code{\link[stats]{glm}} and
+    \code{\link[stats]{family}}.}
+
+\item{control}{a list (of correct class, resulting from
+    \code{\link[lme4]{lmerControl}()} or \code{\link[lme4]{glmerControl}()}
+    respectively) containing control parameters, including the nonlinear
+    optimizer to be used and parameters to be passed through to the
+    nonlinear optimizer, see the \code{*lmerControl} documentation for
+    details.}
+
+\item{start}{a named list of starting values for the parameters in the
+    model, or a numeric vector.  A numeric \code{start} argument will be
+    used as the starting value of \code{theta}.  If \code{start} is a
+    list, the \code{theta} element (a numeric vector) is used as the
+    starting value for the first optimization step (default=1 for
+    diagonal elements and 0 for off-diagonal elements of the lower
+    Cholesky factor); the fitted value of \code{theta} from the first
+    step, plus \code{start[["fixef"]]}, are used as starting values for
+    the second optimization step.  If \code{start} has both \code{fixef}
+    and \code{theta} elements, the first optimization step is skipped.
+    For more details or finer control of optimization, see
+    \code{\link[lme4]{modular}}.}
+
+\item{verbose}{integer scalar.  If \code{> 0} verbose output is
+    generated during the optimization of the parameter estimates.  If
+    \code{> 1} verbose output is generated during the individual
+    penalized iteratively reweighted least squares (PIRLS) steps.}
+
+\item{nAGQ}{integer scalar - the number of points per axis for
+    evaluating the adaptive Gauss-Hermite approximation to the
+    log-likelihood.  Defaults to 1, corresponding to the Laplace
+    approximation.  Values greater than 1 produce greater accuracy in
+    the evaluation of the log-likelihood at the expense of speed.  A
+    value of zero uses a faster but less exact form of parameter
+    estimation for GLMMs by optimizing the random effects and the
+    fixed-effects coefficients in the penalized iteratively reweighted
+    least squares step. (See Details.)}
+
+\item{weights}{an optional vector of \sQuote{prior weights} to be used
+      in the fitting process.  Should be \code{NULL} or a numeric
+      vector.}
+
+\item{na.action}{a function that indicates what should happen when the
+    data contain \code{NA}s.  The default action (\code{na.omit},
+    inherited from the \sQuote{factory fresh} value of
+    \code{getOption("na.action")}) strips any observations with any
+    missing values in any variables.}
+
+\item{offset}{this can be used to specify an \emph{a priori} known
+    component to be included in the linear predictor during
+    fitting. This should be \code{NULL} or a numeric vector of length
+    equal to the number of cases.  One or more \code{\link{offset}}
+    terms can be included in the formula instead or as well, and if more
+    than one is specified their sum is used.  See \code{\link{model.offset}}.}
+
+\item{contrasts}{an optional list.  See the \code{contrasts.arg} of
+    \code{\link{model.matrix.default}}.}
+
+\item{devFunOnly}{logical - return only the deviance evaluation
+    function. Note that because the deviance function operates on
+    variables stored in its environment, it may not return
+    \emph{exactly} the same values on subsequent calls (but the results
+    should always be within machine tolerance).}
 
 \item{memberships}{list of weights matrices to replace Zt components with}
-
-\item{...}{Other arguments as in \code{\link[lme4:glmer]{lme4::glmer()}}}
 }
 \value{
 lme4 model object
 }
 \description{
-lme4::lmer but with multimembership random effects
+lme4::glmer but with multimembership random effects
 }
 \examples{
 

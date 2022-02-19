@@ -1,9 +1,8 @@
-#' @title Multimembership random effects
+#' @title multimembership linear mixed effects models
 #' @description lme4::lmer but with multimembership random effects
 #' @name lmer
-#' @param formula mixed model formula
+#' @inheritParams lme4::lmer
 #' @param memberships list of weights matrices to replace Zt components with
-#' @param ... Other arguments as in [lme4::lmer()]
 #' @return lme4 model object
 #' @export
 #' @import lme4
@@ -145,12 +144,11 @@ lmer <- function(formula,
 }
 
 
-#' @title Multimembership random effects
-#' @description lme4::lmer but with multimembership random effects
+#' @title multimembership generalized linear mixed effects models
+#' @description lme4::glmer but with multimembership random effects
 #' @name glmer
-#' @param formula mixed model formula
+#' @inheritParams lme4::glmer
 #' @param memberships list of weights matrices to replace Zt components with
-#' @param ... Other arguments as in [lme4::glmer()]
 #' @return lme4 model object
 #' @export
 #' @import lme4
