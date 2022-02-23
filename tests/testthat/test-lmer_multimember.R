@@ -191,7 +191,7 @@ test_that("summary.lmerModMultiMember has the right attributes", {
     memberships = list(members = member_matrix)
   )
   expect_equal(member_matrix, summary(m)$memberships$members)
-  summary(m)
+  print(summary(m))
 })
 
 test_that("summary.glmerModMultiMember has the right attributes", {
@@ -207,5 +207,5 @@ test_that("summary.glmerModMultiMember has the right attributes", {
     memberships = list(members = member_matrix)
   )
   expect_equal(member_matrix, summary(m)$memberships$members)
-  summary(m)
+  print(summary(m))
 })
