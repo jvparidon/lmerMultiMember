@@ -2,7 +2,7 @@
 % Please edit documentation in R/lmer_multimember.R
 \name{summary.glmerModMultiMember}
 \alias{summary.glmerModMultiMember}
-\title{summary method for multimembership model objects}
+\title{summary method for multimembership glmer model objects}
 \usage{
 \method{summary}{glmerModMultiMember}(object, ...)
 }
@@ -15,5 +15,5 @@
 summary of glmerModMultiMember object
 }
 \description{
-summary method for multimembership model objects
+summary method for multimembership glmer model objects
 }

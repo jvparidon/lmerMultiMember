@@ -410,7 +410,7 @@ glmerModMultiMember <-
   )
 
 
-#' @title summary method for multimembership model objects
+#' @title summary method for multimembership lmer model objects
 #' @param object lmerModMultiMember model object
 #' @param ... additional arguments to be passed on to summary.lmerMod
 #' @return summary of lmerModMultiMember object
@@ -451,7 +451,7 @@ summary.lmerModMultiMember <- function(object, ...) {
 }
 
 
-#' @title summary method for multimembership model objects
+#' @title summary method for multimembership glmer model objects
 #' @param object glmerModMultiMember model object
 #' @param ... additional arguments to be passed on to summary.glmerMod
 #' @return summary of glmerModMultiMember object
@@ -476,4 +476,38 @@ summary.glmerModMultiMember <- function(object, ...) {
   class(summ) <- c("summary.glmerModMultiMember", class(summ))
 
   return(summ)
+}
+
+
+#' @title print method for multiple memberships summary for lmer
+#' @param x lmerModMultiMember object
+#' @param ... additional arguments to be passed on to print.summary.merMod
+#' @export
+print.summary.lmerModMultiMember <- function(x, ...) {
+  lme4:::print.summary.merMod(x, ...)
+  cat("\nGroup memberships per observation for multiple membership REs:\n")
+  multimember_sums <- purrr::map(x$memberships, Matrix::colSums)
+  print(cbind(
+    "Min. per obs." = purrr::map(multimember_sums, min),
+    "Mean per obs." = purrr::map(multimember_sums, mean),
+    "Max. per obs." = purrr::map(multimember_sums, max)
+  ))
+  invisible(x)
+}
+
+
+#' @title print method for multiple memberships summary for glmer
+#' @param x lmerModMultiMember object
+#' @param ... additional arguments to be passed on to print.summary.merMod
+#' @export
+print.summary.glmerModMultiMember <- function(x, ...) {
+  lme4:::print.summary.merMod(x, ...)
+  cat("\nGroup memberships per observation for multiple membership REs:\n")
+  multimember_sums <- purrr::map(x$memberships, Matrix::colSums)
+  print(cbind(
+    "Min. per obs." = purrr::map(multimember_sums, min),
+    "Mean per obs." = purrr::map(multimember_sums, mean),
+    "Max. per obs." = purrr::map(multimember_sums, max)
+  ))
+  invisible(x)
 }
