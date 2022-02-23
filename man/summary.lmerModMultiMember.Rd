@@ -6,6 +6,14 @@
 \usage{
 \method{summary}{lmerModMultiMember}(object, ...)
 }
+\arguments{
+\item{object}{lmerModMultiMember model object}
+
+\item{...}{additional arguments to be passed on to summary.lmerMod}
+}
+\value{
+summary of lmerModMultiMember object
+}
 \description{
 summary method for multimembership model objects
 }

@@ -411,12 +411,16 @@ glmerModMultiMember <-
 
 
 #' @title summary method for multimembership model objects
+#' @param object lmerModMultiMember model object
+#' @param ... additional arguments to be passed on to summary.lmerMod
+#' @return summary of lmerModMultiMember object
 #' @export
 summary.lmerModMultiMember <- function(object, ...) {
-  # ddf <- match.arg(ddf)
-  if(!inherits(object, "lmerModMultiMember") && !inherits(object, "lmerMod")) {
-    stop("Cannot compute summary for objects of class: ",
-         paste(class(object), collapse = ", "))
+  if (!inherits(object, "lmerModMultiMember") && !inherits(object, "lmerMod")) {
+    stop(
+      "Cannot compute summary for objects of class: ",
+      paste(class(object), collapse = ", ")
+    )
   }
 
   ##############################################################################
@@ -424,22 +428,52 @@ summary.lmerModMultiMember <- function(object, ...) {
   ## what is the point of coercing to lmerModMultiMember if the model wasn't
   ## a multimembership model in the first place?
   ##############################################################################
-  #if(!inherits(object, "lmerModMultiMember") && inherits(object, "lmerMod")) {
+  # if(!inherits(object, "lmerModMultiMember") && inherits(object, "lmerMod")) {
   #  message("Coercing object to class 'lmerModMultiMember'")
   #  object <- as_lmerModMultiMember(object)
   #  if(!inherits(object, "lmerModMultiMember")) {
   #    warning("Failed to coerce object to class 'lmerModMultiMember'")
   #    return(summary(object))
   #  }
-  #}
+  # }
   ##############################################################################
   memberships <- object@memberships
   summ <- summary(as(object, "lmerMod"), ...)
   summ$objClass <- class(object) # Used by lme4:::print.summary.lmerMod
-  summ$methTitle <- paste0(summ$methTitle,
-                           " with multiple membership random effects")
+  summ$methTitle <- paste0(
+    summ$methTitle,
+    " with multiple membership random effects"
+  )
   summ$memberships <- memberships
   class(summ) <- c("summary.lmerModMultiMember", class(summ))
 
-  summ
+  return(summ)
+}
+
+
+#' @title summary method for multimembership model objects
+#' @param object glmerModMultiMember model object
+#' @param ... additional arguments to be passed on to summary.glmerMod
+#' @return summary of glmerModMultiMember object
+#' @export
+summary.glmerModMultiMember <- function(object, ...) {
+  if (!inherits(object, "glmerModMultiMember") &&
+    !inherits(object, "glmerMod")) {
+    stop(
+      "Cannot compute summary for objects of class: ",
+      paste(class(object), collapse = ", ")
+    )
+  }
+
+  memberships <- object@memberships
+  summ <- summary(as(object, "glmerMod"), ...)
+  summ$objClass <- class(object) # Used by lme4:::print.summary.glmerMod
+  summ$methTitle <- paste0(
+    summ$methTitle,
+    " with multiple membership random effects"
+  )
+  summ$memberships <- memberships
+  class(summ) <- c("summary.glmerModMultiMember", class(summ))
+
+  return(summ)
 }
