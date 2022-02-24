@@ -423,20 +423,6 @@ summary.lmerModMultiMember <- function(object, ...) {
     )
   }
 
-  ##############################################################################
-  ## lmerTest block, unclear if we really need this:
-  ## what is the point of coercing to lmerModMultiMember if the model wasn't
-  ## a multimembership model in the first place?
-  ##############################################################################
-  # if(!inherits(object, "lmerModMultiMember") && inherits(object, "lmerMod")) {
-  #  message("Coercing object to class 'lmerModMultiMember'")
-  #  object <- as_lmerModMultiMember(object)
-  #  if(!inherits(object, "lmerModMultiMember")) {
-  #    warning("Failed to coerce object to class 'lmerModMultiMember'")
-  #    return(summary(object))
-  #  }
-  # }
-  ##############################################################################
   memberships <- object@memberships
   summ <- summary(as(object, "lmerMod"), ...)
   summ$objClass <- class(object) # Used by lme4:::print.summary.lmerMod
