@@ -472,11 +472,11 @@ summary.glmerModMultiMember <- function(object, ...) {
 print.summary.lmerModMultiMember <- function(x, ...) {
   lme4:::print.summary.merMod(x, ...)
   cat("\nGroup memberships per observation for multiple membership REs:\n")
-  multimember_sums <- purrr::map(x$memberships, Matrix::colSums)
+  multimember_sums <- lapply(x$memberships, Matrix::colSums)
   print(cbind(
-    "Min. per obs." = purrr::map(multimember_sums, min),
-    "Mean per obs." = purrr::map(multimember_sums, mean),
-    "Max. per obs." = purrr::map(multimember_sums, max)
+    "Min. per obs." = lapply(multimember_sums, min),
+    "Mean per obs." = lapply(multimember_sums, mean),
+    "Max. per obs." = lapply(multimember_sums, max)
   ))
   invisible(x)
 }
@@ -489,11 +489,11 @@ print.summary.lmerModMultiMember <- function(x, ...) {
 print.summary.glmerModMultiMember <- function(x, ...) {
   lme4:::print.summary.merMod(x, ...)
   cat("\nGroup memberships per observation for multiple membership REs:\n")
-  multimember_sums <- purrr::map(x$memberships, Matrix::colSums)
+  multimember_sums <- lapply(x$memberships, Matrix::colSums)
   print(cbind(
-    "Min. per obs." = purrr::map(multimember_sums, min),
-    "Mean per obs." = purrr::map(multimember_sums, mean),
-    "Max. per obs." = purrr::map(multimember_sums, max)
+    "Min. per obs." = lapply(multimember_sums, min),
+    "Mean per obs." = lapply(multimember_sums, mean),
+    "Max. per obs." = lapply(multimember_sums, max)
   ))
   invisible(x)
 }
