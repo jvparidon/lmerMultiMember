@@ -134,11 +134,6 @@ lmer <- function(formula,
   )
 
   # convert model object to lmerModMultiMember
-  # TODO: does this object need any additional slots/attributes?
-  # or do we just want to output some additional information when
-  # summary.lmerModMultiMember is called?
-  # e.g. for each random effect: don't show number of levels,
-  # but number of groups & number of unique group members
   m1 <- as(m1, "lmerModMultiMember")
   m1@memberships <- memberships
   return(m1)
@@ -360,11 +355,6 @@ glmer <- function(formula,
   )
 
   # convert model object to glmerModMultiMember
-  # does this need any additional slots/attributes?
-  # or do we just want to output some additional information when
-  # summary.glmerModMultiMember is called?
-  # e.g. for each random effect: don't show number of levels,
-  # but number of groups & number of unique group members
   m1 <- as(m1, "glmerModMultiMember")
   m1@memberships <- memberships
   return(m1)
@@ -381,112 +371,96 @@ lme4::ranef
 
 
 #' @title Model object for multimembership linear mixed models
+#' @description The \code{merModMultiMember} class extends \code{merMod}
+#' from the \pkg{lme4}-package.
+#' @seealso \code{\link[lme4]{lmer}} and \code{\link[lme4]{merMod}}
+#' @export
+#' @importClassesFrom lme4 merMod
+#' @return An object of class \code{merModMultiMember} similar to
+#' \code{merMod} objects (see \code{\link[lme4]{merMod}}) with
+#' extra information about the multimembership random effects.
+merModMultiMember <-
+  setClass("merModMultiMember",
+    contains = c("merMod"), slots = c(memberships = "list")
+  )
+
+
+#' @title Model object for multimembership linear mixed models
 #' @description The \code{lmerModMultiMember} class extends \code{lmerMod}
-#' (which extends \code{merMod}) from the \pkg{lme4}-package.
+#' from the \pkg{lme4}-package and \code{merModMultiMember}.
 #' @seealso \code{\link[lme4]{lmer}} and \code{\link[lme4]{merMod}}
 #' @export
 #' @importClassesFrom lme4 lmerMod
 #' @return An object of class \code{lmerModMultiMember} similar to
-#' \code{lmerMod} objects (see \code{\link[lme4]{merMod}}) with
-#' extra information about the multimembership random effects.
+#' \code{merModMultiMember} objects but inheriting from \code{lmerMod}
 lmerModMultiMember <-
   setClass("lmerModMultiMember",
-    contains = c("lmerMod"), slots = c(memberships = "list")
+           contains = c("lmerMod", "merModMultiMember")
   )
 
 
 #' @title Model object for multimembership generalized linear mixed models
 #' @description The \code{glmerModMultiMember} class extends \code{glmerMod}
-#' (which extends \code{merMod}) from the \pkg{lme4}-package.
+#' from the \pkg{lme4}-package and \code{merModMultiMember}.
 #' @seealso \code{\link[lme4]{glmer}} and \code{\link[lme4]{merMod}}
 #' @export
 #' @importClassesFrom lme4 glmerMod
 #' @return An object of class \code{glmerModMultiMember} similar to
-#' \code{glmerMod} objects (see \code{\link[lme4]{merMod}}) with
-#' extra information about the multimembership random effects.
+#' \code{merModMultiMember} objects but inheriting from \code{glmerMod}
 glmerModMultiMember <-
   setClass("glmerModMultiMember",
-    contains = c("glmerMod"), slots = c(memberships = "list")
+           contains = c("glmerMod", "merModMultiMember")
   )
 
 
-#' @title summary method for multimembership lmer model objects
-#' @param object lmerModMultiMember model object
-#' @param ... additional arguments to be passed on to summary.lmerMod
-#' @return summary of lmerModMultiMember object
+#' @title Summary method for multimembership model objects
+#' @param object merModMultiMember model object
+#' @param ... additional arguments to be passed on to summary.merMod
+#' @return summary of merModMultiMember object
 #' @export
-summary.lmerModMultiMember <- function(object, ...) {
-  if (!inherits(object, "lmerModMultiMember") && !inherits(object, "lmerMod")) {
+summary.merModMultiMember <- function(object, ...) {
+  if (!inherits(object, "merModMultiMember") && !inherits(object, "merMod")) {
     stop(
       "Cannot compute summary for objects of class: ",
       paste(class(object), collapse = ", ")
     )
   }
 
-  memberships <- object@memberships
-  summ <- summary(as(object, "lmerMod"), ...)
-  summ$objClass <- class(object) # Used by lme4:::print.summary.lmerMod
-  summ$methTitle <- paste0(
-    summ$methTitle,
-    " with multiple membership random effects"
-  )
-  summ$memberships <- memberships
-  class(summ) <- c("summary.lmerModMultiMember", class(summ))
-
-  return(summ)
-}
-
-
-#' @title summary method for multimembership glmer model objects
-#' @param object glmerModMultiMember model object
-#' @param ... additional arguments to be passed on to summary.glmerMod
-#' @return summary of glmerModMultiMember object
-#' @export
-summary.glmerModMultiMember <- function(object, ...) {
-  if (!inherits(object, "glmerModMultiMember") &&
-    !inherits(object, "glmerMod")) {
-    stop(
-      "Cannot compute summary for objects of class: ",
-      paste(class(object), collapse = ", ")
-    )
+  # check whether model was lmer or glmer and call summary
+  # if neither lmer or glmer throw error
+  if (inherits(object, "lmerMod")) {
+    summ <- summary(as(object, "lmerMod"), ...)
+  } else {
+    if (inherits(object, "glmerMod")) {
+      summ <- summary(as(object, "glmerMod"), ...)
+    } else {
+      stop("Object class must inherit from either lmerMod or glmerMod")
+    }
   }
 
-  memberships <- object@memberships
-  summ <- summary(as(object, "glmerMod"), ...)
-  summ$objClass <- class(object) # Used by lme4:::print.summary.glmerMod
+  # store model class in summary because lme4 uses this info
+  summ$objClass <- class(object)
+
+  # add multiple membership to summary title
   summ$methTitle <- paste0(
     summ$methTitle,
     " with multiple membership random effects"
   )
-  summ$memberships <- memberships
-  class(summ) <- c("summary.glmerModMultiMember", class(summ))
 
+  # pass multiple membership matrix through to summary
+  summ$memberships <- object@memberships
+
+  # add merModMultiMember class and return summary
+  class(summ) <- c("summary.merModMultiMember", class(summ))
   return(summ)
 }
 
 
-#' @title print method for multiple memberships summary for lmer
-#' @param x lmerModMultiMember object
+#' @title Print method for multiple memberships model summary
+#' @param x merModMultiMember object
 #' @param ... additional arguments to be passed on to print.summary.merMod
 #' @export
-print.summary.lmerModMultiMember <- function(x, ...) {
-  lme4:::print.summary.merMod(x, ...)
-  cat("\nGroup memberships per observation for multiple membership REs:\n")
-  multimember_sums <- lapply(x$memberships, Matrix::colSums)
-  print(cbind(
-    "Min. per obs." = lapply(multimember_sums, min),
-    "Mean per obs." = lapply(multimember_sums, mean),
-    "Max. per obs." = lapply(multimember_sums, max)
-  ))
-  invisible(x)
-}
-
-
-#' @title print method for multiple memberships summary for glmer
-#' @param x lmerModMultiMember object
-#' @param ... additional arguments to be passed on to print.summary.merMod
-#' @export
-print.summary.glmerModMultiMember <- function(x, ...) {
+print.summary.merModMultiMember <- function(x, ...) {
   lme4:::print.summary.merMod(x, ...)
   cat("\nGroup memberships per observation for multiple membership REs:\n")
   multimember_sums <- lapply(x$memberships, Matrix::colSums)
