@@ -419,7 +419,7 @@ glmerModMultiMember <-
 #' @return summary of merModMultiMember object
 #' @export
 summary.merModMultiMember <- function(object, ...) {
-  if (!inherits(object, "merModMultiMember") && !inherits(object, "merMod")) {
+  if (!inherits(object, "merModMultiMember")) {
     stop(
       "Cannot compute summary for objects of class: ",
       paste(class(object), collapse = ", ")
