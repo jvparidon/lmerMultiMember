@@ -68,9 +68,9 @@ test_that("lmer with devFunOnly = TRUE works", {
   )
   weights <- weights_from_vector(df$memberships)
   m <- lmerMultiMember::lmer(y ~ x + (1 | members),
-                             data = df,
-                             memberships = list(members = weights),
-                             devFunOnly = TRUE
+    data = df,
+    memberships = list(members = weights),
+    devFunOnly = TRUE
   )
   expect_identical(typeof(m), "closure")
 })
@@ -83,10 +83,10 @@ test_that("glmer with devFunOnly = TRUE works", {
   )
   weights <- weights_from_vector(df$memberships)
   m <- lmerMultiMember::glmer(y ~ x + (1 | members),
-                              data = df,
-                              family = binomial,
-                              memberships = list(members = weights),
-                              devFunOnly = TRUE
+    data = df,
+    family = binomial,
+    memberships = list(members = weights),
+    devFunOnly = TRUE
   )
   expect_identical(typeof(m), "closure")
 })
@@ -99,11 +99,11 @@ test_that("glmer with devFunOnly = TRUE & nAGQ = 0 works", {
   )
   weights <- weights_from_vector(df$memberships)
   m <- lmerMultiMember::glmer(y ~ x + (1 | members),
-                              data = df,
-                              family = binomial,
-                              memberships = list(members = weights),
-                              nAGQ = 0,
-                              devFunOnly = TRUE
+    data = df,
+    family = binomial,
+    memberships = list(members = weights),
+    nAGQ = 0,
+    devFunOnly = TRUE
   )
   expect_identical(typeof(m), "closure")
 })
@@ -115,13 +115,12 @@ test_that("glmer with start = list(theta = .8) works", {
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   weights <- weights_from_vector(df$memberships)
-  m <- lmerMultiMember::glmer(y ~ x + (1 | members),
-                              data = df,
-                              family = binomial,
-                              memberships = list(members = weights),
-                              start = list(theta = .8)
-  )
-  # TODO: add an expect_identical of some variety here?
+  expect_silent(lmerMultiMember::glmer(y ~ x + (1 | members),
+    data = df,
+    family = binomial,
+    memberships = list(members = weights),
+    start = list(theta = .8)
+  ))
 })
 
 test_that("glmer with start = .8 works", {
@@ -131,42 +130,82 @@ test_that("glmer with start = .8 works", {
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   weights <- weights_from_vector(df$memberships)
+  expect_silent(lmerMultiMember::glmer(y ~ x + (1 | members),
+    data = df,
+    family = binomial,
+    memberships = list(members = weights),
+    start = .8
+  ))
+})
+
+test_that("glmer with invalid start parameter throws error", {
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  weights <- weights_from_vector(df$memberships)
+  expect_error(lmerMultiMember::glmer(y ~ x + (1 | members),
+    data = df,
+    family = binomial,
+    memberships = list(members = weights),
+    start = list(heron = .8)
+  ))
+})
+
+test_that("glmer with fixef start parameter & nAGQ = 0 throws error", {
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  weights <- weights_from_vector(df$memberships)
+  expect_error(lmerMultiMember::glmer(y ~ x + (1 | members),
+    data = df,
+    family = binomial,
+    memberships = list(members = weights),
+    nAGQ = 0,
+    start = list(fixef = c(.2, .8))
+  ))
+})
+
+test_that("summary.merModMultiMember wih incorrect type throws error", {
+  expect_error(summary.merModMultiMember(0))
+
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  member_matrix <- weights_from_vector(df$memberships)
+  m <- lmerMultiMember::lmer(y ~ x + (1 | members),
+                             data = df,
+                             memberships = list(members = member_matrix)
+  )
+  class(m) <- c("merModMultiMember")
+  expect_error(summary(m))
+})
+
+test_that("summary.merModMultiMember has the right attributes and prints", {
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  member_matrix <- weights_from_vector(df$memberships)
+  # call with lmer
+  m <- lmerMultiMember::lmer(y ~ x + (1 | members),
+    data = df,
+    memberships = list(members = member_matrix)
+  )
+  expect_equal(member_matrix, summary(m)$memberships$members)
+  expect_output(print(summary(m)))
+  # call with glmer
   m <- lmerMultiMember::glmer(y ~ x + (1 | members),
                               data = df,
                               family = binomial,
-                              memberships = list(members = weights),
-                              start = .8
+                              memberships = list(members = member_matrix)
   )
-  # TODO: add an expect_identical of some variety here?
-})
-
-test_that("glmer with invalid start parameter returns an error", {
-  df <- data.frame(
-    x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
-    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
-  )
-  weights <- weights_from_vector(df$memberships)
-  expect_error(lmerMultiMember::glmer(y ~ x + (1 | members),
-                              data = df,
-                              family = binomial,
-                              memberships = list(members = weights),
-                              start = list(heron = .8)
-  ))
-})
-
-test_that("glmer with fixef start parameter & nAGQ = 0 returns an error", {
-  df <- data.frame(
-    x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
-    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
-  )
-  weights <- weights_from_vector(df$memberships)
-  expect_error(lmerMultiMember::glmer(y ~ x + (1 | members),
-                                      data = df,
-                                      family = binomial,
-                                      memberships = list(members = weights),
-                                      nAGQ = 0,
-                                      start = list(fixef = c(.2, .8))
-  ))
+  expect_equal(member_matrix, summary(m)$memberships$members)
+  expect_output(print(summary(m)))
 })

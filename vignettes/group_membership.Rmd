@@ -22,7 +22,8 @@ Load packages (we don't really need anything beyond lmerMultiMember; the rest ar
 ```{r}
 library(lmerMultiMember)
 library(broom.mixed)
-library(ggplot2); theme_set(theme_bw())
+library(ggplot2)
+theme_set(theme_bw())
 library(Matrix)
 ```
 
@@ -33,24 +34,31 @@ nm <- 20 # number of groups
 nobs <- 1000
 set.seed(101)
 ## choose items for observations
-pres <- matrix(rbinom(nobs*nm, prob=0.25, size=1),nrow=nobs,ncol=nm)
-dimnames(pres) <- list(NULL,LETTERS[seq(nm)])
-pres[1:5,]
+pres <- matrix(rbinom(nobs * nm, prob = 0.25, size = 1), nrow = nobs, ncol = nm)
+dimnames(pres) <- list(NULL, LETTERS[seq(nm)])
+pres[1:5, ]
 ```
 
 
 ```{r, fig.width=6, fig.height=4}
-image(Matrix(pres),ylim=c(1,10),sub="",ylab="Observation",
-      xlab="Item",
-      ## draw tick labels at top
-      scales=list(at=1:20,x=list(labels=colnames(pres),
-                                 alternating=2)))
+image(Matrix(pres),
+  ylim = c(1, 10), sub = "", ylab = "Observation",
+  xlab = "Item",
+  ## draw tick labels at top
+  scales = list(at = 1:20, x = list(
+    labels = colnames(pres),
+    alternating = 2
+  ))
+)
 ```
 
 We can look at how many times a particular number of groups occurs (which should match $Binomial(n=20, 0, p=0.25)$)
 
 ```{r, fig.width=6, fig.height=4}
-hist(rowSums(pres), main="Multi-Group Membership", xlab="Number of groups associated with an observation")
+hist(rowSums(pres),
+  main = "Multi-Group Membership",
+  xlab = "Number of groups associated with an observation"
+)
 ```
 
 
@@ -59,30 +67,34 @@ Since we chose which items/individuals to include for each observation randomly 
 Now simulate the response variable.
 
 ```{r, results=FALSE}
-b <- rnorm(nm, sd=2)  ## item-level effects
+b <- rnorm(nm, sd = 2) ## item-level effects
 ## n.b. get in trouble if we don't add residual error
 ## (theta is scaled relative to residual error)
-y <- c(pres %*% b) + rnorm(nobs,sd=1.5)
+y <- c(pres %*% b) + rnorm(nobs, sd = 1.5)
 ```
 
 
 Fit and the results look OK (correct item and residual variance estimated):
 ```{r}
-m1 <- lmer(y ~ 1 + (1|membership), 
-                            data=data.frame(y=y, x=rep(1, nobs)), 
-                            memberships=list(membership=t(pres)))
+m1 <- lmer(y ~ 1 + (1 | membership),
+  data = data.frame(y = y, x = rep(1, nobs)),
+  memberships = list(membership = t(pres))
+)
 summary(m1)
 ```
 
 The conditional modes by item look good:
 ```{r, fig.width=6, fig.height=4}
-dd <- tidy(m1, effects="ran_vals")
-dd <- transform(dd, level=reorder(level,estimate))
-truth <- data.frame(level=LETTERS[seq(nm)],estimate=b)
-ggplot(dd,aes(x=level,y=estimate))+
-    geom_pointrange(aes(ymin=estimate-2*std.error,
-              ymax=estimate+2*std.error))+coord_flip()+
-    geom_point(data=truth,colour="red")
+dd <- tidy(m1, effects = "ran_vals")
+dd <- transform(dd, level = reorder(level, estimate))
+truth <- data.frame(level = LETTERS[seq(nm)], estimate = b)
+ggplot(dd, aes(x = level, y = estimate)) +
+  geom_pointrange(aes(
+    ymin = estimate - 2 * std.error,
+    ymax = estimate + 2 * std.error
+  )) +
+  coord_flip() +
+  geom_point(data = truth, colour = "red")
 ```
 
 ## Zooming In: Equal, indepent contributions
@@ -94,58 +106,68 @@ set.seed(42)
 nobs <- 1000
 nm <- 10
 dat <- data.frame(
- x = runif(nobs), 
- z = runif(nobs),
- # TODO: double check that all(g1 != g2)
- g1 = sample(1:nm, nobs, TRUE), 
- g2 = sample(1:nm, nobs, TRUE)
+  x = runif(nobs),
+  z = runif(nobs),
+  # TODO: double check that all(g1 != g2)
+  g1 = sample(1:nm, nobs, TRUE),
+  g2 = sample(1:nm, nobs, TRUE)
 )
 
-dat$grps <- paste(LETTERS[dat$g1], LETTERS[dat$g2], sep=",")
+dat$grps <- paste(LETTERS[dat$g1], LETTERS[dat$g2], sep = ",")
 
 # fixed effects
 beta <- c(1, 2, 3)
 # random effects
-bint <- rnorm(nm, sd=3.14)
+bint <- rnorm(nm, sd = 3.14)
 # we could be clever about setting the model matrix here, but it's
 # easier and clearer how we're constructing bits if we're inefficient
 
-fe <- beta[1] + beta[2] * dat$x + beta[3] * dat$z 
+fe <- beta[1] + beta[2] * dat$x + beta[3] * dat$z
 
 # note that the group contributions for each observation are assumed to be
 # independent and equally weighted.
 # TODO: add example of unequal weights
 re <- bint[dat$g1] + bint[dat$g2]
 
-dat$y <- fe + re + rnorm(nobs, sd=1)
+dat$y <- fe + re + rnorm(nobs, sd = 1)
 weights <- weights_from_vector(dat$grps)
 head(dat)
 ```
 
 
 ```{r, fig.width=4, fig.height=4}
-image(t(weights),ylim=c(1,10),sub="",ylab="Observation",
-      xlab="Item",
-      ## draw tick labels at top
-      scales=list(at=1:20,x=list(labels=colnames(pres),
-                                 alternating=2)))
+image(t(weights),
+  ylim = c(1, 10), sub = "", ylab = "Observation",
+  xlab = "Item",
+  ## draw tick labels at top
+  scales = list(at = 1:20, x = list(
+    labels = colnames(pres),
+    alternating = 2
+  ))
+)
 ```
 
 ```{r}
-m2 <- lmer(y ~ 1 + x + z + (1|g), data=dat, memberships=list(g=weights), REML=FALSE)
+m2 <- lmer(y ~ 1 + x + z + (1 | g),
+  data = dat,
+  memberships = list(g = weights), REML = FALSE
+)
 summary(m2)
 ```
 
 Not ideal, but not horrible -- it looks like there is an upward bias, but this is inline with the estimate for the group standard deviation being a bit off.
 
 ```{r, fig.width=6, fig.height=4}
-dd <- tidy(m2, effects="ran_vals")
-dd <- transform(dd, level=reorder(level,estimate))
-truth <- data.frame(level=LETTERS[seq(nm)],estimate=bint)
-ggplot(dd,aes(x=level,y=estimate))+
-    geom_pointrange(aes(ymin=estimate-2*std.error,
-              ymax=estimate+2*std.error))+coord_flip()+
-    geom_point(data=truth,colour="red")
+dd <- tidy(m2, effects = "ran_vals")
+dd <- transform(dd, level = reorder(level, estimate))
+truth <- data.frame(level = LETTERS[seq(nm)], estimate = bint)
+ggplot(dd, aes(x = level, y = estimate)) +
+  geom_pointrange(aes(
+    ymin = estimate - 2 * std.error,
+    ymax = estimate + 2 * std.error
+  )) +
+  coord_flip() +
+  geom_point(data = truth, colour = "red")
 ```
 
 ## A slightly more complex example
@@ -157,76 +179,91 @@ set.seed(42)
 nobs <- 10000
 nm <- 26
 dat <- data.frame(
- x = runif(nobs), 
- z = runif(nobs),
- # TODO: double check that all(g1 != g2)
- g1 = sample(1:nm, nobs, TRUE), 
- g2 = sample(1:nm, nobs, TRUE)
+  x = runif(nobs),
+  z = runif(nobs),
+  # TODO: double check that all(g1 != g2)
+  g1 = sample(1:nm, nobs, TRUE),
+  g2 = sample(1:nm, nobs, TRUE)
 )
 
-dat$grps <- paste(LETTERS[dat$g1], LETTERS[dat$g2], sep=",")
+dat$grps <- paste(LETTERS[dat$g1], LETTERS[dat$g2], sep = ",")
 
 # fixed effects
 beta <- c(1, 2, 3)
 # random effects
-bint <- rnorm(nm, sd=3.14)
-bx <- rnorm(nm, sd=0.2)
+bint <- rnorm(nm, sd = 3.14)
+bx <- rnorm(nm, sd = 0.2)
 
 # we could be clever about setting the model matrix here, but it's
 # easier and clearer how we're constructing bits if we're inefficient
 
-fe <- beta[1] + beta[2] * dat$x + beta[3] * dat$z 
+fe <- beta[1] + beta[2] * dat$x + beta[3] * dat$z
 
 # note that the group contributions for each observation are assumed to be
 # independent and equally weighted.
 # TODO: add example of unequal weights
 re <- bint[dat$g1] + bint[dat$g2] + (bx[dat$g1] + bx[dat$g2]) * dat$x
 
-dat$y <- fe + re + rnorm(nobs, sd=1)
+dat$y <- fe + re + rnorm(nobs, sd = 1)
 head(dat)
 ```
 
 
 ```{r, fig.width=4, fig.height=4}
-image(t(weights_from_vector(dat$grps)),ylim=c(1,10),sub="",ylab="Observation",
-      xlab="Item",
-      ## draw tick labels at top
-      scales=list(at=1:20,x=list(labels=colnames(pres),
-                                 alternating=2)))
+image(t(weights_from_vector(dat$grps)),
+  ylim = c(1, 10), sub = "", ylab = "Observation",
+  xlab = "Item",
+  ## draw tick labels at top
+  scales = list(at = 1:20, x = list(
+    labels = colnames(pres),
+    alternating = 2
+  ))
+)
 ```
 
 ```{r}
-m3 <- lmer(y ~ 1 + x + z + (1+x|g), data=dat, REML=FALSE,
-           memberships=list(g=weights_from_vector(dat$grps)))
+m3 <- lmer(y ~ 1 + x + z + (1 + x | g),
+  data = dat, REML = FALSE,
+  memberships = list(g = weights_from_vector(dat$grps))
+)
 summary(m3)
 ```
 
 ```{r, fig.width=6, fig.height=4}
-dd <- tidy(m3, effects="ran_vals")
-dd <- transform(dd, level=reorder(level,estimate))
-truth <- rbind(data.frame(level=LETTERS[seq(nm)],estimate=bint, term="(Intercept)"),
-               data.frame(level=LETTERS[seq(nm)],estimate=bx, term="x"))
-ggplot(dd,aes(x=level,y=estimate)) +
-    geom_pointrange(aes(ymin=estimate-2*std.error,
-              ymax=estimate+2*std.error))+coord_flip()+
-    geom_point(data=truth,colour="red") + 
-    facet_wrap(~term)
+dd <- tidy(m3, effects = "ran_vals")
+dd <- transform(dd, level = reorder(level, estimate))
+truth <- rbind(
+  data.frame(level = LETTERS[seq(nm)], estimate = bint, term = "(Intercept)"),
+  data.frame(level = LETTERS[seq(nm)], estimate = bx, term = "x")
+)
+ggplot(dd, aes(x = level, y = estimate)) +
+  geom_pointrange(aes(
+    ymin = estimate - 2 * std.error,
+    ymax = estimate + 2 * std.error
+  )) +
+  coord_flip() +
+  geom_point(data = truth, colour = "red") +
+  facet_wrap(~term)
 ```
 
 
 ```{r}
 # note that we have a random slope for which we didn't introduce any variation
 # in the data, which is the same as setting it to zero
-m4 <- lmer(y ~ 1 + x + z + (1+x+z|g), data=dat, REML=FALSE,
-           memberships=list(g=weights_from_vector(dat$grps)))
+m4 <- lmer(y ~ 1 + x + z + (1 + x + z | g),
+  data = dat, REML = FALSE,
+  memberships = list(g = weights_from_vector(dat$grps))
+)
 summary(m4)
 ```
 
 ```{r}
 # note that we have a random slope for which we didn't introduce any variation
 # in the data, which is the same as setting it to zero
-m4zc <- lmer(y ~ 1 + x + z + (1+x+z||g), data=dat, REML=FALSE,
-             memberships=list(g=weights_from_vector(dat$grps)))
+m4zc <- lmer(y ~ 1 + x + z + (1 + x + z || g),
+  data = dat, REML = FALSE,
+  memberships = list(g = weights_from_vector(dat$grps))
+)
 summary(m4zc)
 ```
 

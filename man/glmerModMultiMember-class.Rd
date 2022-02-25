@@ -7,12 +7,11 @@
 \title{Model object for multimembership generalized linear mixed models}
 \value{
 An object of class \code{glmerModMultiMember} similar to
-\code{glmerMod} objects (see \code{\link[lme4]{merMod}}) with
-extra information about the multimembership random effects.
+\code{merModMultiMember} objects but inheriting from \code{glmerMod}
 }
 \description{
 The \code{glmerModMultiMember} class extends \code{glmerMod}
-(which extends \code{merMod}) from the \pkg{lme4}-package.
+from the \pkg{lme4}-package and \code{merModMultiMember}.
 }
 \seealso{
 \code{\link[lme4]{glmer}} and \code{\link[lme4]{merMod}}
