@@ -45,7 +45,7 @@ weights_from_columns <- function(membership_columns) {
 
   # create list of group membership indices
   idx <- na.omit(stack(setNames(
-    membership_columns,
+    as.matrix(membership_columns),
     rep(1:nobs, ncol(membership_columns))
   )))
 
