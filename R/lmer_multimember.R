@@ -72,7 +72,8 @@ lmer <- function(formula,
     w <- which(mnms == gvars[i])
 
     if (length(w) > 0) {
-      M <- Matrix::Matrix(memberships[[w]])
+      ## select relevant weight matrix
+      M <- memberships[[w]]
 
       ## extract LHS (effect)
       form <- as.formula(substitute(~z, list(z = fb[[i]][[2]])))
@@ -217,7 +218,8 @@ glmer <- function(formula,
     w <- which(mnms == gvars[i])
 
     if (length(w) > 0) {
-      M <- Matrix::Matrix(memberships[[w]])
+      ## select relevant weight matrix
+      M <- memberships[[w]]
 
       ## extract LHS (effect)
       form <- as.formula(substitute(~z, list(z = fb[[i]][[2]])))
