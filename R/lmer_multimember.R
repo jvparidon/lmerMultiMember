@@ -56,14 +56,9 @@ lmer <- function(formula,
   # get names of multimembership variables
   mnms <- names(memberships)
 
-  # insert dummy sequences into temporary dataframe
-  # this is used for correct missing values handling
-  tmp <- data[setdiff(all.vars(formula), mnms)]
-  tmp$not_na_idx <- seq(1:nrow(data))
-  tmp <- na.action(tmp)
-  not_na_idx <- tmp$not_na_idx
-  tmp$not_na_idx <- NULL
-  # this is a mess, can we clean this up?
+  # subset data to include only variables used in formula
+  # this is used for correct missing data handling
+  data <- data[setdiff(all.vars(formula), mnms)]
 
   # get index of bars (location of random effects) in model formula
   fb <- lme4::findbars(formula)
@@ -82,15 +77,13 @@ lmer <- function(formula,
 
     if (length(w) > 0) {
       ## select relevant weight matrix
-      M <- memberships[[w]][, not_na_idx]
-      #M <- memberships[[w]]
+      M <- memberships[[w]][, complete.cases(data)]
 
       ## extract LHS (effect)
       form <- as.formula(substitute(~z, list(z = fb[[i]][[2]])))
 
       ## construct model matrix & compute Khatri-Rao product
-      X <- model.matrix(form, data = tmp)
-      #X <- model.matrix(form, data = data)
+      X <- model.matrix(form, data[complete.cases(data), , drop=FALSE])
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
       ## FIXME: mess with names?
@@ -129,6 +122,7 @@ lmer <- function(formula,
   if (devFunOnly) {
     return(devfun)
   }
+
   opt <- optimizeLmer(devfun,
     optimizer = control$optimizer,
     restart_edge = control$restart_edge,
@@ -213,6 +207,10 @@ glmer <- function(formula,
   # get names of multimembership variables
   mnms <- names(memberships)
 
+  # subset data to include only variables used in formula
+  # this is used for correct missing data handling
+  data <- data[setdiff(all.vars(formula), mnms)]
+
   # get index of bars (location of random effects) in model formula
   fb <- lme4::findbars(formula)
 
@@ -230,13 +228,13 @@ glmer <- function(formula,
 
     if (length(w) > 0) {
       ## select relevant weight matrix
-      M <- memberships[[w]]
+      M <- memberships[[w]][, complete.cases(data)]
 
       ## extract LHS (effect)
       form <- as.formula(substitute(~z, list(z = fb[[i]][[2]])))
 
       ## construct model matrix & compute Khatri-Rao product
-      X <- model.matrix(form, data = data)
+      X <- model.matrix(form, data[complete.cases(data), , drop=FALSE])
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
       ## FIXME: mess with names?
@@ -248,7 +246,7 @@ glmer <- function(formula,
         ## in the data.  Do we have to worry about ordering of Z? test!
         data[[gvars[i]]] <- rep_len(
           factor(rownames(memberships[[w]])),
-          dim(data)[1]
+          nrow(data)
         )
       }
     }
@@ -316,7 +314,6 @@ glmer <- function(formula,
   }
 
   if (nAGQ > 0L) {
-
 
     ## update deviance function to include fixed effects as inputs
     devfun <- updateGlmerDevfun(devfun, glmod$reTrms, nAGQ = nAGQ)
