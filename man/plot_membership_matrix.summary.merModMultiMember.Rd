@@ -2,15 +2,17 @@
 % Please edit documentation in R/lmer_multimember.R
 \name{plot_membership_matrix.summary.merModMultiMember}
 \alias{plot_membership_matrix.summary.merModMultiMember}
-\title{Plotting method for multiple memberships model}
+\title{Plotting method for multiple memberships model summary}
 \usage{
-\method{plot_membership_matrix}{summary.merModMultiMember}(x, varname)
+\method{plot_membership_matrix}{summary.merModMultiMember}(x, varname, ...)
 }
 \arguments{
 \item{x}{merModMultiMember summary object}
 
 \item{varname}{multimembership variable to be plotted}
+
+\item{...}{additional arguments to pass on to Matrix::image}
 }
 \description{
-Plotting method for multiple memberships model
+Plotting method for multiple memberships model summary
 }

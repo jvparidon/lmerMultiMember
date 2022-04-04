@@ -4,12 +4,14 @@
 \alias{plot_membership_matrix.merModMultiMember}
 \title{Plotting method for multiple memberships model}
 \usage{
-\method{plot_membership_matrix}{merModMultiMember}(x, varname)
+\method{plot_membership_matrix}{merModMultiMember}(x, varname, ...)
 }
 \arguments{
 \item{x}{merModMultiMember object}
 
 \item{varname}{multimembership variable to be plotted}
+
+\item{...}{additional arguments to pass on to Matrix::image}
 }
 \description{
 Plotting method for multiple memberships model

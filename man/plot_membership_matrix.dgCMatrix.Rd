@@ -4,12 +4,14 @@
 \alias{plot_membership_matrix.dgCMatrix}
 \title{Plotting function for multiple membership matrix}
 \usage{
-\method{plot_membership_matrix}{dgCMatrix}(x, varname = NULL)
+\method{plot_membership_matrix}{dgCMatrix}(x, varname = NULL, ...)
 }
 \arguments{
 \item{x}{multimembership weight matrix}
 
 \item{varname}{name of the multimembership variable, will be used as title}
+
+\item{...}{additional arguments to pass on to Matrix::image}
 }
 \description{
 Plotting function for multiple membership matrix
