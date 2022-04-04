@@ -481,3 +481,116 @@ print.summary.merModMultiMember <- function(x, ...) {
   ))
   invisible(x)
 }
+
+#' @title Generic for multiple dispatch of multiple membership plot functions
+#' @param x object containing multimembership information, either a weight
+#' matrix, multimembership model, or model summary
+#' @param varname the multimembership variable to plot, if the object contains
+#' more than one
+#' @param ... additional arguments to pass on to Matrix::image
+#' @export
+plot_membership_matrix <- function(x, varname=NULL, ...) {
+  UseMethod("plot_membership_matrix")
+}
+
+
+#' @title Plotting function for multiple membership matrix
+#' @param x multimembership weight matrix
+#' @param varname name of the multimembership variable, will be used as title
+#' @param ... additional arguments to pass on to Matrix::image
+#' @export
+plot_membership_matrix.dgCMatrix <- function(x, varname=NULL, ...) {
+  x <- Matrix::t(x)
+  Matrix::image(
+    x,
+    main = varname,
+    sub = NULL,
+    ylab = "observation",
+    xlab = "item",
+    scales = list(
+      x = list(
+        at = seq(1:ncol(x)),
+        labels = colnames(x),
+        alternating = 3
+      ),
+      y = list(
+        at = seq(1:nrow(x)),
+        labels = rownames(x),
+        alternating = 3
+      )
+    ),
+    ...
+  )
+}
+
+
+#' @title Plotting method for multiple memberships model
+#' @param x merModMultiMember object
+#' @param varname multimembership variable to be plotted
+#' @param ... additional arguments to pass on to Matrix::image
+#' @export
+plot_membership_matrix.merModMultiMember <- function(x, varname, ...) {
+  plot_membership_matrix(x@memberships[[varname]], varname, ...)
+}
+
+
+#' @title Plotting method for multiple memberships model summary
+#' @param x merModMultiMember summary object
+#' @param varname multimembership variable to be plotted
+#' @param ... additional arguments to pass on to Matrix::image
+#' @export
+plot_membership_matrix.summary.merModMultiMember <- function(x, varname, ...) {
+  plot_membership_matrix(x$memberships[[varname]], varname, ...)
+}
+
+
+#' @title Generic for multiple dispatch of multiple membership weights
+#' histogram functions
+#' @param x object containing multimembership information, either a weight
+#' matrix, multimembership model, or model summary
+#' @param varname the multimembership variable to plot, if the object contains
+#' more than one
+#' @param ... additional arguments to pass on to graphics::hist
+#' @export
+plot_membership_hist <- function(x, varname=NULL, ...) {
+  UseMethod("plot_membership_hist")
+}
+
+
+#' @title Plotting function for multiple membership weights histogram
+#' @param x multimembership weight matrix
+#' @param varname name of the multimembership variable, will be used as title
+#' @param ... additional arguments to pass on to graphics::hist
+#' @export
+plot_membership_hist.dgCMatrix <- function(x, varname=NULL, ...) {
+  sums = Matrix::colSums(x)
+  graphics::hist(
+    sums,
+    main = varname,
+    xlab = "Number of groups associated with an observation",
+    # shift breaks by .5 by default so they line up with whole integer values?
+    #breaks = seq(min(sums):(max(sums) + 1)) - .5,
+    ...
+  )
+}
+
+
+#' @title Plotting method for multiple memberships model weights histogram
+#' @param x merModMultiMember object
+#' @param varname multimembership variable to be plotted
+#' @param ... additional arguments to pass on to graphics::hist
+#' @export
+plot_membership_hist.merModMultiMember <- function(x, varname, ...) {
+  plot_membership_hist(x@memberships[[varname]], varname, ...)
+}
+
+
+#' @title Plotting method for multiple memberships model summary weights
+#' histogram
+#' @param x merModMultiMember summary object
+#' @param varname multimembership variable to be plotted
+#' @param ... additional arguments to pass on to graphics::hist
+#' @export
+plot_membership_hist.summary.merModMultiMember <- function(x, varname, ...) {
+  plot_membership_hist(x$memberships[[varname]], varname, ...)
+}
