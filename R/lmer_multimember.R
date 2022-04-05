@@ -37,20 +37,26 @@ lmer <- function(formula,
   orig_call <- match.call()
 
   # TODO: detect if lmerTest is loaded
+  if ("lmerTest" %in% (.packages())) {
+    lmlib <- "lmerTest"
+  } else {
+    lmlib <- "lme4"
+  }
 
   if (is.null(memberships)) {
-    return(lme4::lmer(formula,
-      data = data,
-      REML = REML,
-      control = control,
-      start = start,
-      verbose = verbose,
-      weights = weights,
-      na.action = na.action,
-      offset = offset,
-      contrasts = contrasts,
-      devFunOnly = devFunOnly
-    ))
+    return(do.call(get("lmer", asNamespace(lmlib)), args = list(
+      formula,
+       data = data,
+       REML = REML,
+       control = control,
+       start = start,
+       verbose = verbose,
+       weights = weights,
+       na.action = na.action,
+       offset = offset,
+       contrasts = contrasts,
+       devFunOnly = devFunOnly
+    )))
   }
 
   # get names of multimembership variables
@@ -132,17 +138,29 @@ lmer <- function(formula,
     control = control$optCtrl
   )
 
-  m1 <- mkMerMod(environment(devfun),
+  res <- mkMerMod(
+    environment(devfun),
     opt,
     lmod$reTrms,
     fr = lmod$fr,
     mc = orig_call
   )
 
-  # convert model object to lmerModMultiMember
-  m1 <- as(m1, "lmerModMultiMember")
-  m1@memberships <- memberships
-  return(m1)
+  if (lmlib == "lmerTest") {
+    # convert model object to lmerModLmerTest
+    res <- lmerTest:::as_lmerModLT(res, devfun)
+
+    # convert model object to lmerModLmerTestMultiMember
+    res <- as(res, "lmerModLmerTestMultiMember")
+    res@memberships <- memberships
+  } else {
+    # convert model object to lmerModMultiMember
+    res <- as(res, "lmerModMultiMember")
+    res@memberships <- memberships
+  }
+
+  return(res)
+
 }
 
 
@@ -409,6 +427,24 @@ lmerModMultiMember <-
   )
 
 
+# this relies on lmerTest being installed, which is probably bad form?
+# TODO: figure out how to fix this?
+#if ("lmerTest" %in% installed.packages()) {
+  #' @title Model object for multimembership linear mixed models with lmerTest
+  #' @description The \code{lmerModMultiMember} class extends
+  #' \code{lmerModLmerTest} from the \pkg{lmerTest}-package and
+  #' \code{lmerModMultiMember}.
+  #' @seealso \code{\link[lmerTest]{lmer}} and \code{\link[lme4]{lmer}}
+  #' @export
+  #' @importClassesFrom lmerTest lmerModLmerTest
+  #' @return An object of class \code{lmerModMultiMember} similar to
+  #' \code{merModMultiMember} objects but inheriting from \code{lmerMod}
+  lmerModLmerTestMultiMember <-
+    setClass("lmerModLmerTestMultiMember",
+             contains = c("lmerModLmerTest", "lmerModMultiMember")
+    )
+#}
+
 #' @title Model object for multimembership generalized linear mixed models
 #' @description The \code{glmerModMultiMember} class extends \code{glmerMod}
 #' from the \pkg{lme4}-package and \code{merModMultiMember}.
@@ -454,7 +490,7 @@ summary.merModMultiMember <- function(object, ...) {
   # add multiple membership to summary title
   summ$methTitle <- paste0(
     summ$methTitle,
-    " with multiple membership random effects"
+    ". Model includes multiple membership random effects."
   )
 
   # pass multiple membership matrix through to summary
@@ -462,6 +498,40 @@ summary.merModMultiMember <- function(object, ...) {
 
   # add merModMultiMember class and return summary
   class(summ) <- c("summary.merModMultiMember", class(summ))
+  return(summ)
+}
+
+
+#' @title Summary method for multimembership model objects
+#' @param object merModMultiMember model object
+#' @param ... additional arguments to be passed on to summary.merMod
+#' @return summary of merModMultiMember object
+#' @export
+summary.lmerModLmerTestMultiMember <- function(object, ...) {
+  if (!inherits(object, "lmerModLmerTestMultiMember")) {
+    stop(
+      "Cannot compute summary for objects of class: ",
+      paste(class(object), collapse = ", ")
+    )
+  }
+
+  # call lmerModLmerTest summary
+  summ <- summary(as(object, "lmerModLmerTest"), ...)
+
+  # store model class in summary because lme4 uses this info
+  summ$objClass <- class(object)
+
+  # add multiple membership to summary title
+  summ$methTitle <- paste0(
+    summ$methTitle,
+    ". Model includes multiple membership random effects."
+  )
+
+  # pass multiple membership matrix through to summary
+  summ$memberships <- object@memberships
+
+  # add merModMultiMember class and return summary
+  class(summ) <- c("summary.lmerModLmerTestMultiMember", class(summ))
   return(summ)
 }
 
@@ -482,6 +552,24 @@ print.summary.merModMultiMember <- function(x, ...) {
   invisible(x)
 }
 
+
+#' @title Print method for multiple memberships model summary
+#' @param x merModMultiMember object
+#' @param ... additional arguments to be passed on to print.summary.merMod
+#' @export
+print.summary.lmerModLmerTestMultiMember <- function(x, ...) {
+  lme4:::print.summary.merMod(x, ...)
+  cat("\nGroup memberships per observation for multiple membership REs:\n")
+  multimember_sums <- lapply(x$memberships, Matrix::colSums)
+  print(cbind(
+    "Min. per obs." = lapply(multimember_sums, min),
+    "Mean per obs." = lapply(multimember_sums, mean),
+    "Max. per obs." = lapply(multimember_sums, max)
+  ))
+  invisible(x)
+}
+
+
 #' @title Generic for multiple dispatch of multiple membership plot functions
 #' @param x object containing multimembership information, either a weight
 #' matrix, multimembership model, or model summary
@@ -499,8 +587,8 @@ plot_membership_matrix <- function(x, varname=NULL, ...) {
 #' @param varname name of the multimembership variable, will be used as title
 #' @param ... additional arguments to pass on to Matrix::image
 #' @export
-plot_membership_matrix.dgCMatrix <- function(x, varname=NULL, ...) {
-  x <- Matrix::t(x)
+plot_membership_matrix.default <- function(x, varname=NULL, ...) {
+  x <- Matrix::t(as(x, "dgCMatrix"))
   Matrix::image(
     x,
     main = varname,
