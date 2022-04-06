@@ -427,23 +427,26 @@ lmerModMultiMember <-
   )
 
 
-# this relies on lmerTest being installed, which is probably bad form?
-# TODO: figure out how to fix this?
-#if ("lmerTest" %in% installed.packages()) {
-  #' @title Model object for multimembership linear mixed models with lmerTest
-  #' @description The \code{lmerModMultiMember} class extends
-  #' \code{lmerModLmerTest} from the \pkg{lmerTest}-package and
-  #' \code{lmerModMultiMember}.
-  #' @seealso \code{\link[lmerTest]{lmer}} and \code{\link[lme4]{lmer}}
-  #' @export
-  #' @importClassesFrom lmerTest lmerModLmerTest
-  #' @return An object of class \code{lmerModMultiMember} similar to
-  #' \code{merModMultiMember} objects but inheriting from \code{lmerMod}
+#' @name lmerModLmerTestMultiMember
+#' @title Model object for multimembership linear mixed models with lmerTest
+#' @description The \code{lmerModMultiMember} class extends
+#' \code{lmerModLmerTest} from the \pkg{lmerTest}-package and
+#' \code{lmerModMultiMember}.
+#' @seealso \code{\link[lmerTest]{lmer}} and \code{\link[lme4]{lmer}}
+#' @export
+#' @return An object of class \code{lmerModMultiMember} similar to
+#' \code{merModMultiMember} objects but inheriting from \code{lmerMod}
+if ("lmerTest" %in% (.packages())) {
   lmerModLmerTestMultiMember <-
     setClass("lmerModLmerTestMultiMember",
              contains = c("lmerModLmerTest", "lmerModMultiMember")
     )
-#}
+} else {
+  # this is an ugly kludge
+  # TODO: fix this?
+  lmerModLmerTestMultiMember <- NULL
+}
+
 
 #' @title Model object for multimembership generalized linear mixed models
 #' @description The \code{glmerModMultiMember} class extends \code{glmerMod}
