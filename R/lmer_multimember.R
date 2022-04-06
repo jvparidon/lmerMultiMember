@@ -427,7 +427,6 @@ lmerModMultiMember <-
   )
 
 
-#' @name lmerModLmerTestMultiMember
 #' @title Model object for multimembership linear mixed models with lmerTest
 #' @description The \code{lmerModMultiMember} class extends
 #' \code{lmerModLmerTest} from the \pkg{lmerTest}-package and
@@ -436,16 +435,15 @@ lmerModMultiMember <-
 #' @export
 #' @return An object of class \code{lmerModMultiMember} similar to
 #' \code{merModMultiMember} objects but inheriting from \code{lmerMod}
-if ("lmerTest" %in% (.packages())) {
-  lmerModLmerTestMultiMember <-
-    setClass("lmerModLmerTestMultiMember",
-             contains = c("lmerModLmerTest", "lmerModMultiMember")
+lmerModLmerTestMultiMember <-
+  setClass(
+    "lmerModLmerTestMultiMember",
+    contains = c("lmerModMultiMember",
+    #             `if`(("lmerTest" %in% (.packages())),
+    #                    "lmerModLmerTest", NULL)
+    `if`((require(lmerTest)), "lmerModLmerTest", NULL)
     )
-} else {
-  # this is an ugly kludge
-  # TODO: fix this?
-  lmerModLmerTestMultiMember <- NULL
-}
+  )
 
 
 #' @title Model object for multimembership generalized linear mixed models
@@ -508,9 +506,10 @@ summary.merModMultiMember <- function(object, ...) {
 #' @title Summary method for multimembership model objects
 #' @param object merModMultiMember model object
 #' @param ... additional arguments to be passed on to summary.merMod
+#' @param ddf method for computing degrees of freedom, used by lmerTest
 #' @return summary of merModMultiMember object
 #' @export
-summary.lmerModLmerTestMultiMember <- function(object, ...) {
+summary.lmerModLmerTestMultiMember <- function(object, ..., ddf="lme4") {
   if (!inherits(object, "lmerModLmerTestMultiMember")) {
     stop(
       "Cannot compute summary for objects of class: ",
@@ -519,7 +518,15 @@ summary.lmerModLmerTestMultiMember <- function(object, ...) {
   }
 
   # call lmerModLmerTest summary
-  summ <- summary(as(object, "lmerModLmerTest"), ...)
+  if (ddf == "lme4") {
+    summ <- summary(as(object, "lmerMod"), ...)
+    # add merModMultiMember class
+    class(summ) <- c("summary.merModMultiMember", class(summ))
+  } else {
+    summ <- summary(as(object, "lmerModLmerTest"), ..., ddf=ddf)
+    # add lmerModMultiMemberLmerTest class
+    class(summ) <- c("summary.lmerModLmerTestMultiMember", class(summ))
+  }
 
   # store model class in summary because lme4 uses this info
   summ$objClass <- class(object)
@@ -533,8 +540,7 @@ summary.lmerModLmerTestMultiMember <- function(object, ...) {
   # pass multiple membership matrix through to summary
   summ$memberships <- object@memberships
 
-  # add merModMultiMember class and return summary
-  class(summ) <- c("summary.lmerModLmerTestMultiMember", class(summ))
+  # return summary
   return(summ)
 }
 
@@ -561,15 +567,7 @@ print.summary.merModMultiMember <- function(x, ...) {
 #' @param ... additional arguments to be passed on to print.summary.merMod
 #' @export
 print.summary.lmerModLmerTestMultiMember <- function(x, ...) {
-  lme4:::print.summary.merMod(x, ...)
-  cat("\nGroup memberships per observation for multiple membership REs:\n")
-  multimember_sums <- lapply(x$memberships, Matrix::colSums)
-  print(cbind(
-    "Min. per obs." = lapply(multimember_sums, min),
-    "Mean per obs." = lapply(multimember_sums, mean),
-    "Max. per obs." = lapply(multimember_sums, max)
-  ))
-  invisible(x)
+  print.summary.merModMultiMember(x, ...)
 }
 
 

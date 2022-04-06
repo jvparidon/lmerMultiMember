@@ -4,12 +4,14 @@
 \alias{summary.lmerModLmerTestMultiMember}
 \title{Summary method for multimembership model objects}
 \usage{
-\method{summary}{lmerModLmerTestMultiMember}(object, ...)
+\method{summary}{lmerModLmerTestMultiMember}(object, ..., ddf = "lme4")
 }
 \arguments{
 \item{object}{merModMultiMember model object}
 
 \item{...}{additional arguments to be passed on to summary.merMod}
+
+\item{ddf}{method for computing degrees of freedom, used by lmerTest}
 }
 \value{
 summary of merModMultiMember object
