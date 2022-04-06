@@ -249,3 +249,26 @@ test_that("plot_membership_matrix returns a plot for each object type", {
   expect_s3_class(plot_membership_matrix(summary(m), "members"),
                   "trellis")
 })
+
+test_that("calling lmer with lmerTest loaded returns the correct types", {
+  df <- data.frame(
+    x = runif(60, 0, 1),
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
+  )
+  member_matrix <- weights_from_vector(df$memberships)
+  m <- lmer(y ~ x + (1 | members),
+            data = df,
+            memberships = list(members = member_matrix)
+  )
+  # lme4 passthrough
+  summ <- summary(m)
+  expect_s3_class(summ, "summary.merModMultiMember")
+  expect_s3_class(summ, "summary.merMod")
+  expect_failure(expect_s3_class(summ, "summary.lmerModLmerTestMultiMember"))
+  # lmerTest compatibility
+  summ <- summary(m, ddf = "Satterthwaite")
+  expect_s3_class(summ, "summary.lmerModLmerTest")
+  expect_s3_class(summ, "summary.merMod")
+  expect_s3_class(summ, "summary.lmerModLmerTestMultiMember")
+})
