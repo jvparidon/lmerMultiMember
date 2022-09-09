@@ -272,3 +272,16 @@ test_that("calling lmer with lmerTest loaded returns the correct types", {
   expect_s3_class(summ, "summary.merMod")
   expect_s3_class(summ, "summary.lmerModLmerTestMultiMember")
 })
+
+test_that("using multimembership variable in an interaction but not as a main effect works correctly", {
+  df <- data.frame(
+    y = rbinom(60, 1, 0.6),
+    memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10),
+    other = rep(c("x", "x", "x", "y", "y", "z"), 10)
+  )
+  m <- lmer(y ~ (1 | other:members),
+            data = df,
+            memberships = list(members = weights_from_vector(df$memberships))
+  )
+  expect_output(print(summary(m)))
+})
