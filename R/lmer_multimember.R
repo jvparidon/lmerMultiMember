@@ -2,7 +2,8 @@
 #' @description lme4::lmer but with multimembership random effects
 #' @name lmer
 #' @inheritParams lme4::lmer
-#' @param memberships list of weights matrices to replace Zt components with
+#' @param memberships named list of weight matrices that will replace any
+#' (dummy) random effects with matching names
 #' @return lme4 model object
 #' @export
 #' @import lme4
@@ -36,15 +37,17 @@ lmer <- function(formula,
                  memberships = NULL) {
   orig_call <- match.call()
 
-  # TODO: detect if lmerTest is loaded
+  # detect if lmerTest is loaded
   if ("lmerTest" %in% (.packages())) {
-    lmlib <- "lmerTest"
+    lmerlib <- "lmerTest"
   } else {
-    lmlib <- "lme4"
+    lmerlib <- "lme4"
   }
 
+  # if there are no multiple membership matrices in the function call
+  # just pass it to lme4 or lmerTest instead
   if (is.null(memberships)) {
-    return(do.call(get("lmer", asNamespace(lmlib)), args = list(
+    return(do.call(get("lmer", asNamespace(lmerlib)), args = list(
       formula,
        data = data,
        REML = REML,
@@ -60,53 +63,55 @@ lmer <- function(formula,
   }
 
   # get names of multimembership variables
-  mnms <- names(memberships)
+  multi_RE_names <- names(memberships)
 
   # subset data to include only variables used in formula
   # this is used for correct missing data handling
-  data <- data[setdiff(all.vars(formula), mnms)]
+  data <- data[setdiff(all.vars(formula), multi_RE_names)]
 
   # get index of bars (location of random effects) in model formula
-  fb <- lme4::findbars(formula)
+  bar_idx <- lme4::findbars(formula)
 
   # get random effect grouping variables
-  gvars <- vapply(fb, function(x) deparse(x[[3]]), character(1))
+  RE_vars <- vapply(bar_idx, function(x) deparse(x[[3]]), character(1))
 
+  # initialize list that will hold multimembership random effects matrices
   Ztlist <- list()
 
   # iterate over random effects
-  for (i in seq_along(fb)) {
-    fbnm <- deparse(fb[[i]])
+  for (i in seq_along(bar_idx)) {
+    RE_name <- deparse(bar_idx[[i]])
 
-    ## find corresponding random-effects term
-    w <- which(mnms == gvars[i])
+    # find corresponding random-effects term
+    RE_idx <- which(multi_RE_names == RE_vars[i])
 
-    if (length(w) > 0) {
-      ## select relevant weight matrix
-      M <- memberships[[w]][, complete.cases(data)]
+    if (length(RE_idx) > 0) {
+      # select relevant weight matrix
+      M <- memberships[[RE_idx]][, complete.cases(data)]
 
-      ## extract LHS (effect)
-      form <- as.formula(substitute(~z, list(z = fb[[i]][[2]])))
+      # extract LHS (effect)
+      subformula <- as.formula(substitute(~z, list(z = bar_idx[[i]][[2]])))
 
-      ## construct model matrix & compute Khatri-Rao product
-      X <- model.matrix(form, data[complete.cases(data), , drop=FALSE])
+      # construct model matrix & compute Khatri-Rao product
+      X <- model.matrix(subformula, data[complete.cases(data), , drop=FALSE])
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
-      ## FIXME: mess with names?
-      Ztlist[[fbnm]] <- Zt
+      # FIXME: mess with names?
+      Ztlist[[RE_name]] <- Zt
 
-      ## if necessary, add factor to data
-      if (!gvars[i] %in% names(data)) {
-        ## if the factor has non-trivial ordering, it should be included
-        ## in the data.  Do we have to worry about ordering of Z? test!
-        data[[gvars[i]]] <- rep_len(
-          factor(rownames(memberships[[w]])),
+      # if necessary, add factor to data
+      if (!RE_vars[i] %in% names(data)) {
+        # if the factor has non-trivial ordering, it should be included
+        # TODO: do we have to worry about ordering of Z? test!
+        data[[RE_vars[i]]] <- rep_len(
+          factor(rownames(memberships[[RE_idx]])),
           nrow(data)
         )
       }
     }
   }
 
+  # create model specification but don't fit
   lmod <- lFormula(formula,
     data = data,
     REML = REML,
@@ -117,13 +122,13 @@ lmer <- function(formula,
     control = control
   )
 
-  ## substitute new Ztlist elements
+  # substitute new Ztlist elements into the model specification
   for (m in names(Ztlist)) {
     lmod$reTrms$Ztlist[[m]] <- Ztlist[[m]]
   }
   lmod$reTrms$Zt <- do.call(rbind, lmod$reTrms$Ztlist)
 
-  ## finish fitting
+  # finish fitting
   devfun <- do.call(mkLmerDevfun, lmod)
   if (devFunOnly) {
     return(devfun)
@@ -146,15 +151,16 @@ lmer <- function(formula,
     mc = orig_call
   )
 
-  if (lmlib == "lmerTest") {
-    # convert model object to lmerModLmerTest
+  # convert model object to lmerTest or lmer, depending on what is loaded
+  if (lmerlib == "lmerTest") {
+    # first, convert model object to lmerModLmerTest
     res <- lmerTest:::as_lmerModLT(res, devfun)
 
-    # convert model object to lmerModLmerTestMultiMember
+    # convert model object to lmerModLmerTestMultiMember and add memberships
     res <- as(res, "lmerModLmerTestMultiMember")
     res@memberships <- memberships
   } else {
-    # convert model object to lmerModMultiMember
+    # convert model object to lmerModMultiMember and add memberships
     res <- as(res, "lmerModMultiMember")
     res@memberships <- memberships
   }
@@ -168,7 +174,8 @@ lmer <- function(formula,
 #' @description lme4::glmer but with multimembership random effects
 #' @name glmer
 #' @inheritParams lme4::glmer
-#' @param memberships list of weights matrices to replace Zt components with
+#' @param memberships named list of weight matrices that will replace any
+#' (dummy) random effects with matching names
 #' @return lme4 model object
 #' @export
 #' @import lme4
@@ -204,8 +211,8 @@ glmer <- function(formula,
                   memberships = NULL) {
   orig_call <- match.call()
 
-  # TODO: detect if lmerTest is loaded
-
+  # if there are no multiple membership matrices in the function call
+  # just pass it to lme4 instead
   if (is.null(memberships)) {
     return(lme4::glmer(formula,
       data = data,
@@ -223,53 +230,55 @@ glmer <- function(formula,
   }
 
   # get names of multimembership variables
-  mnms <- names(memberships)
+  multi_RE_names <- names(memberships)
 
   # subset data to include only variables used in formula
   # this is used for correct missing data handling
-  data <- data[setdiff(all.vars(formula), mnms)]
+  data <- data[setdiff(all.vars(formula), multi_RE_names)]
 
   # get index of bars (location of random effects) in model formula
-  fb <- lme4::findbars(formula)
+  bar_idx <- lme4::findbars(formula)
 
   # get random effect grouping variables
-  gvars <- vapply(fb, function(x) deparse(x[[3]]), character(1))
+  RE_vars <- vapply(bar_idx, function(x) deparse(x[[3]]), character(1))
 
+  # initialize list that will hold multimembership random effects matrices
   Ztlist <- list()
 
   # iterate over random effects
-  for (i in seq_along(fb)) {
-    fbnm <- deparse(fb[[i]])
+  for (i in seq_along(bar_idx)) {
+    RE_name <- deparse(bar_idx[[i]])
 
-    ## find corresponding random-effects term
-    w <- which(mnms == gvars[i])
+    # find corresponding random-effects term
+    RE_idx <- which(multi_RE_names == RE_vars[i])
 
-    if (length(w) > 0) {
-      ## select relevant weight matrix
-      M <- memberships[[w]][, complete.cases(data)]
+    if (length(RE_idx) > 0) {
+      # select relevant weight matrix
+      M <- memberships[[RE_idx]][, complete.cases(data)]
 
-      ## extract LHS (effect)
-      form <- as.formula(substitute(~z, list(z = fb[[i]][[2]])))
+      # extract LHS (effect)
+      subformula <- as.formula(substitute(~z, list(z = bar_idx[[i]][[2]])))
 
-      ## construct model matrix & compute Khatri-Rao product
-      X <- model.matrix(form, data[complete.cases(data), , drop=FALSE])
+      # construct model matrix & compute Khatri-Rao product
+      X <- model.matrix(subformula, data[complete.cases(data), , drop=FALSE])
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
-      ## FIXME: mess with names?
-      Ztlist[[fbnm]] <- Zt
+      # FIXME: mess with names?
+      Ztlist[[RE_name]] <- Zt
 
-      ## if necessary, add factor to data
-      if (!gvars[i] %in% names(data)) {
-        ## if the factor has non-trivial ordering, it should be included
-        ## in the data.  Do we have to worry about ordering of Z? test!
-        data[[gvars[i]]] <- rep_len(
-          factor(rownames(memberships[[w]])),
+      # if necessary, add factor to data
+      if (!RE_vars[i] %in% names(data)) {
+        # if the factor has non-trivial ordering, it should be included
+        # TODO: do we have to worry about ordering of Z? test!
+        data[[RE_vars[i]]] <- rep_len(
+          factor(rownames(memberships[[RE_idx]])),
           nrow(data)
         )
       }
     }
   }
 
+  # create model specification but don't fit
   glmod <- glFormula(formula,
     data = data,
     family = family,
@@ -280,13 +289,13 @@ glmer <- function(formula,
     control = control
   )
 
-  ## substitute new Ztlist elements
+  # substitute new Ztlist elements into the model specification
   for (m in names(Ztlist)) {
     glmod$reTrms$Ztlist[[m]] <- Ztlist[[m]]
   }
   glmod$reTrms$Zt <- do.call(rbind, glmod$reTrms$Ztlist)
 
-  ## finish fitting
+  # finish fitting
   ##############################################################################
   ## TODO: figure out how much of the nAGQ wrangling can be handed off to lme4
   ## because the tangle of if/else statements below is pretty ugly
@@ -316,11 +325,11 @@ glmer <- function(formula,
     }
   }
 
-  ## FIX ME: allow calc.derivs, use.last.params etc. if nAGQ=0
+  # FIXME: allow calc.derivs, use.last.params etc. if nAGQ=0
   if (control$nAGQ0initStep) {
     opt <- optimizeGlmer(devfun,
       optimizer = control$optimizer[[1]],
-      ## DON'T try fancy edge tricks unless nAGQ=0 explicitly set
+      # DON'T try fancy edge tricks unless nAGQ=0 explicitly set
       restart_edge = if (nAGQ == 0) control$restart_edge else FALSE,
       boundary.tol = if (nAGQ == 0) control$boundary.tol else 0,
       control = control$optCtrl,
@@ -333,7 +342,7 @@ glmer <- function(formula,
 
   if (nAGQ > 0L) {
 
-    ## update deviance function to include fixed effects as inputs
+    # update deviance function to include fixed effects as inputs
     devfun <- updateGlmerDevfun(devfun, glmod$reTrms, nAGQ = nAGQ)
 
     # updateStart is a utility function from lme4 that is necessary here
@@ -359,7 +368,7 @@ glmer <- function(formula,
     if (devFunOnly) {
       return(devfun)
     }
-    ## reoptimize deviance function over covariance parameters and fixed effects
+    # reoptimize deviance function over covariance parameters and fixed effects
     opt <- optimizeGlmer(devfun,
       optimizer = control$optimizer[[2]],
       restart_edge = control$restart_edge,
@@ -382,7 +391,7 @@ glmer <- function(formula,
     mc = orig_call
   )
 
-  # convert model object to glmerModMultiMember
+  # convert model object to glmerModMultiMember and add memberships
   m1 <- as(m1, "glmerModMultiMember")
   m1@memberships <- memberships
   return(m1)
