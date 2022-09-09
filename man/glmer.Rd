@@ -103,7 +103,8 @@ glmer(
     \emph{exactly} the same values on subsequent calls (but the results
     should always be within machine tolerance).}
 
-\item{memberships}{list of weights matrices to replace Zt components with}
+\item{memberships}{named list of weight matrices that will replace any
+(dummy) random effects with matching names}
 }
 \value{
 lme4 model object

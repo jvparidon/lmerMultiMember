@@ -211,8 +211,8 @@ glmer <- function(formula,
                   memberships = NULL) {
   orig_call <- match.call()
 
-  +  # if there are no multiple membership matrices in the function call
-    +  # just pass it to lme4 instead
+  # if there are no multiple membership matrices in the function call
+  # just pass it to lme4 instead
   if (is.null(memberships)) {
     return(lme4::glmer(formula,
       data = data,
