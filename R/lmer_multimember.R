@@ -87,14 +87,20 @@ lmer <- function(formula,
 
   # temporary list to hold indicator matrices that may only be necessary as intermediate steps
   temp = memberships
-  # do a little dance to create missing indicator matrices for interactions
+
+  # split all random effects groupings into main grouping vars
   RE_split_vars <- strsplit(RE_vars, ":")
-  for (i in seq_along(RE_split_vars)) {
-    split_var <- RE_split_vars[[i]]
-    missing <- FALSE
+
+  # iterate over random effects groupings
+  for (split_var in RE_split_vars) {
+    # iterate over main grouping vars that comprise this random effects grouping
     for (j in seq_along(split_var)) {
       group_var <- split_var[j]
+      missing <- FALSE
+
+      # check that the grouping variable isn't already present in our temp list
       if (!group_var %in% names(temp)) {
+        # add sparse indicator matrix representation of the grouping factor to the temp list
         temp[[group_var]] <- fac2sparse(data[[group_var]], to = "d")
       } else {
         missing <- TRUE
@@ -107,10 +113,8 @@ lmer <- function(formula,
         }
       }
       if (!group_var %in% names(data)) {
-        print(paste("adding missing factor:", group_var))
         # if the factor has non-trivial ordering, it should be included
         # TODO: do we have to worry about ordering of Z? test!
-        print(rownames(memberships[[group_var]]))
         data[[group_var]] <- rep_len(
           factor(rownames(memberships[[group_var]])),
           nrow(data)
@@ -134,7 +138,6 @@ lmer <- function(formula,
     if (length(RE_idx) > 0) {
       # select relevant weight matrix
       M <- memberships[[RE_idx]][, complete.cases(data)]
-      M <- M[Matrix::rowSums(M) > 0,]
 
       # extract LHS (effect)
       subformula <- as.formula(substitute(~z, list(z = bar_idx[[i]][[2]])))
@@ -143,17 +146,12 @@ lmer <- function(formula,
       X <- model.matrix(subformula, data[complete.cases(data), , drop=FALSE])
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
-      # FIXME: mess with names?
-      print(paste("replacing Ztlist item:", RE_name))
+      # stick indicator/weight matrix into the Ztlist
       Ztlist[[RE_name]] <- Zt
       }
     }
   }
 
-  print("names in dataframe:")
-  print(names(data))
-
-  print("creating model spec")
   # create model specification but don't fit
   lmod <- lFormula(formula,
     data = data,
@@ -165,23 +163,21 @@ lmer <- function(formula,
     control = control
   )
 
-  print("Ztlist:")
-  print(lmod$reTrms$Ztlist)
-
   # substitute new Ztlist elements into the model specification
   for (m in names(Ztlist)) {
     lmod$reTrms$Ztlist[[m]] <- Ztlist[[m]]
   }
+  # bind Ztlist together into a single Zt indicator/weight matrix
   lmod$reTrms$Zt <- do.call(rbind, lmod$reTrms$Ztlist)
+
+  # replace Lind vector (indicator for matching theta values to indicator matrix rows)
   lmod$reTrms$Lind <- unlist(lapply(seq_along(lmod$reTrms$Ztlist),
                                     function(x) rep(x, nrow(lmod$reTrms$Ztlist[[x]]))))
-  print("Lind:")
-  print(lmod$reTrms$Lind)
-  lmod$reTrms$Lambdat <- Matrix::Diagonal(length(lmod$reTrms$Lind))
 
-  print("new Ztlist:")
-  print(Ztlist)
-  #return(lmod)
+  # replace Lambdat diagonal matrix
+  # TODO: there has to be a simpler way to create a diagonal dgCMatrix?
+  lmod$reTrms$Lambdat <- as(Matrix::Diagonal(length(lmod$reTrms$Lind)), "dgCMatrix")
+
 
   # finish fitting
   devfun <- do.call(mkLmerDevfun, lmod)
