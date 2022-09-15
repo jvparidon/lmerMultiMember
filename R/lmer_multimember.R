@@ -86,7 +86,7 @@ lmer <- function(formula,
   }
 
   # temporary list to hold indicator matrices that may only be necessary as intermediate steps
-  temp = memberships
+  templist = memberships
 
   # split all random effects groupings into main grouping vars
   RE_split_vars <- strsplit(RE_vars, ":")
@@ -96,21 +96,19 @@ lmer <- function(formula,
     # iterate over main grouping vars that comprise this random effects grouping
     for (j in seq_along(split_var)) {
       group_var <- split_var[j]
-      missing <- FALSE
 
       # check that the grouping variable isn't already present in our temp list
-      if (!group_var %in% names(temp)) {
+      if (!group_var %in% names(templist)) {
         # add sparse indicator matrix representation of the grouping factor to the temp list
-        temp[[group_var]] <- fac2sparse(data[[group_var]], to = "d")
-      } else {
-        missing <- TRUE
+        templist[[group_var]] <- fac2sparse(data[[group_var]], to = "d")
       }
+
+      # if the random effects grouping has more than one term
       if (j > 1) {
-          temp[[paste(split_var[1:j], collapse = ":")]] <- mat_expand(temp[[paste(split_var[1:j - 1], collapse = ":")]],
-                                                                      temp[[group_var]])
-        if (missing) {
-          memberships[[paste(split_var[1:j], collapse = ":")]] <- temp[[paste(split_var[1:j], collapse = ":")]]
-        }
+          # stack the current main grouping var onto an existing grouping in the temp list
+          # using mat_expand()
+          temp <- mat_expand(templist[[paste(split_var[1:j - 1], collapse = ":")]], templist[[group_var]])
+          templist[[paste(split_var[1:j], collapse = ":")]] <- temp
       }
       if (!group_var %in% names(data)) {
         # if the factor has non-trivial ordering, it should be included
@@ -119,6 +117,12 @@ lmer <- function(formula,
           factor(rownames(memberships[[group_var]])),
           nrow(data)
         )
+      }
+    }
+    # if this is an interaction grouping (i.e. not a main grouping)
+    if (length(split_var) > 1) {
+      # add this grouping's indicator/weight matrix to the real (non-temporary) memberships list
+      memberships[[paste(split_var, collapse = ":")]] <- temp
     }
   }
 
@@ -148,7 +152,6 @@ lmer <- function(formula,
 
       # stick indicator/weight matrix into the Ztlist
       Ztlist[[RE_name]] <- Zt
-      }
     }
   }
 
@@ -167,6 +170,7 @@ lmer <- function(formula,
   for (m in names(Ztlist)) {
     lmod$reTrms$Ztlist[[m]] <- Ztlist[[m]]
   }
+
   # bind Ztlist together into a single Zt indicator/weight matrix
   lmod$reTrms$Zt <- do.call(rbind, lmod$reTrms$Ztlist)
 
