@@ -62,12 +62,9 @@ lmer <- function(formula,
     )))
   }
 
-  # get names of multimembership variables
-  multi_RE_names <- names(memberships)
-
   # subset data to include only variables used in formula
   # this is used for correct missing data handling
-  data <- data[setdiff(all.vars(formula), multi_RE_names)]
+  data <- data[setdiff(all.vars(formula), names(memberships))]
 
   # get index of bars (location of random effects) in model formula
   bar_idx <- lme4::findbars(formula)
@@ -75,8 +72,57 @@ lmer <- function(formula,
   # get random effect grouping variables
   RE_vars <- vapply(bar_idx, function(x) deparse(x[[3]]), character(1))
 
+  # takes sparse weight matrices a and b, and computes the combined ab weight matrix
+  mat_expand <- function(a, b) {
+    abrows <- as.character(interaction(expand.grid(rownames(a), rownames(b))))
+    ab <- Matrix(0, nrow=length(abrows), ncol=ncol(a),
+                 dimnames=list(abrows, colnames(a)))
+    for (i in 1:length(rownames(a))) {
+      for (j in 1:length(rownames(b))) {
+        ab[((j - 1) * length(rownames(a))) + i,] <- a[i,, drop=FALSE] * b[j,, drop=FALSE]
+      }
+    }
+    return(ab)
+  }
+
+  # temporary list to hold indicator matrices that may only be necessary as intermediate steps
+  temp = memberships
+  # do a little dance to create missing indicator matrices for interactions
+  RE_split_vars <- strsplit(RE_vars, ":")
+  for (i in seq_along(RE_split_vars)) {
+    split_var <- RE_split_vars[[i]]
+    missing <- FALSE
+    for (j in seq_along(split_var)) {
+      group_var <- split_var[j]
+      if (!group_var %in% names(temp)) {
+        temp[[group_var]] <- fac2sparse(data[[group_var]], to = "d")
+      } else {
+        missing <- TRUE
+      }
+      if (j > 1) {
+          temp[[paste(split_var[1:j], collapse = ":")]] <- mat_expand(temp[[paste(split_var[1:j - 1], collapse = ":")]],
+                                                                      temp[[group_var]])
+        if (missing) {
+          memberships[[paste(split_var[1:j], collapse = ":")]] <- temp[[paste(split_var[1:j], collapse = ":")]]
+        }
+      }
+      if (!group_var %in% names(data)) {
+        print(paste("adding missing factor:", group_var))
+        # if the factor has non-trivial ordering, it should be included
+        # TODO: do we have to worry about ordering of Z? test!
+        print(rownames(memberships[[group_var]]))
+        data[[group_var]] <- rep_len(
+          factor(rownames(memberships[[group_var]])),
+          nrow(data)
+        )
+    }
+  }
+
   # initialize list that will hold multimembership random effects matrices
   Ztlist <- list()
+
+  # get names of multimembership variables
+  multi_RE_names <- names(memberships)
 
   # iterate over random effects
   for (i in seq_along(bar_idx)) {
@@ -88,6 +134,7 @@ lmer <- function(formula,
     if (length(RE_idx) > 0) {
       # select relevant weight matrix
       M <- memberships[[RE_idx]][, complete.cases(data)]
+      M <- M[Matrix::rowSums(M) > 0,]
 
       # extract LHS (effect)
       subformula <- as.formula(substitute(~z, list(z = bar_idx[[i]][[2]])))
@@ -97,20 +144,16 @@ lmer <- function(formula,
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
       # FIXME: mess with names?
+      print(paste("replacing Ztlist item:", RE_name))
       Ztlist[[RE_name]] <- Zt
-
-      # if necessary, add factor to data
-      if (!RE_vars[i] %in% names(data)) {
-        # if the factor has non-trivial ordering, it should be included
-        # TODO: do we have to worry about ordering of Z? test!
-        data[[RE_vars[i]]] <- rep_len(
-          factor(rownames(memberships[[RE_idx]])),
-          nrow(data)
-        )
       }
     }
   }
 
+  print("names in dataframe:")
+  print(names(data))
+
+  print("creating model spec")
   # create model specification but don't fit
   lmod <- lFormula(formula,
     data = data,
@@ -122,11 +165,23 @@ lmer <- function(formula,
     control = control
   )
 
+  print("Ztlist:")
+  print(lmod$reTrms$Ztlist)
+
   # substitute new Ztlist elements into the model specification
   for (m in names(Ztlist)) {
     lmod$reTrms$Ztlist[[m]] <- Ztlist[[m]]
   }
   lmod$reTrms$Zt <- do.call(rbind, lmod$reTrms$Ztlist)
+  lmod$reTrms$Lind <- unlist(lapply(seq_along(lmod$reTrms$Ztlist),
+                                    function(x) rep(x, nrow(lmod$reTrms$Ztlist[[x]]))))
+  print("Lind:")
+  print(lmod$reTrms$Lind)
+  lmod$reTrms$Lambdat <- Matrix::Diagonal(length(lmod$reTrms$Lind))
+
+  print("new Ztlist:")
+  print(Ztlist)
+  #return(lmod)
 
   # finish fitting
   devfun <- do.call(mkLmerDevfun, lmod)
