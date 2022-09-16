@@ -4,6 +4,17 @@
 Wrapper around `lme4::lmer` and `lme4::glmer` to add support for multimembership random effects.  
 This package was developed by Jeroen van Paridon and Phillip Alday, based on an initial worked example of a multiple membership linear mixed model authored by Ben Bolker.
 
+### Installation
+The package is not yet available on CRAN, but you can install it with the devtools package:
+```R
+if(!require(devtools)){
+    install.packages("devtools")
+    library("devtools")
+}
+
+install_github("jvparidon/lmerMultiMember")
+```
+
 ### What is a multimembership random effect?
 Let's take authorship as an example: If we want to model some aspect of published journal articles, e.g. `citations ~ word_count`, we might want to account for variability caused by the authors of papers by using random intercepts. However, many papers don't have just a single author. How do we account for author variability then?  
 
