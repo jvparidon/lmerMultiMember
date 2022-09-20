@@ -272,3 +272,27 @@ test_that("calling lmer with lmerTest loaded returns the correct types", {
   expect_s3_class(summ, "summary.merMod")
   expect_s3_class(summ, "summary.lmerModLmerTestMultiMember")
 })
+
+test_that("bootstrap and profile likelihood CIs work (and roughly match)", {
+  # make some toy data
+  x <- runif(600, 0, 1)
+  df <- data.frame(
+    x = x,
+    y = rep(rbinom(12, 1, 0.6), 50) + (x * 1.0),
+    j = rep(c("a", "b", "b,a"), 200),
+    k = rep(c("m", "n"), 300)
+  )
+  m <- lmer(y ~ x + (1 | Wj),
+       data = df,
+       memberships = list(Wj = weights_from_vector(df$j))
+  )
+  suppressMessages({
+    profil <- confint(m, method = "profile")
+    bootstrap <- confint(m, method = "boot")
+  })
+  expect_type(profil, "double")
+  expect_type(bootstrap, "double")
+  # TODO: decide whether testing for equality with a tolerance of 1e-1 is
+  # sufficiently lenient for this test to pass unless there are serious issues
+  expect_equal(bootstrap["x", ], profil["x", ], tolerance = 1e-1)
+})
