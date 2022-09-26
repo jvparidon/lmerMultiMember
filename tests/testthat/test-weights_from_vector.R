@@ -1,53 +1,83 @@
-test_that("return type is sparse matrix", {
-  member_vec <- c("a,b,c", "a,c", "a", "b", "b,a")
-  expect_s4_class(weights_from_vector(member_vec), "sparseMatrix")
+test_that("weights_from_vector() return type is sparse matrix", {
+  a <- c("k,l,m", "k,m", "k", "l", "l,k")
+  Wa <- weights_from_vector(a)
+  expect_s4_class(Wa, "sparseMatrix")
+})
 
-  member_cols <- cbind(
-    c("a", "a", "b", NA, "c"),
-    c("b", "c", "a", "c", "a"),
-    c("c", NA, "c", NA, NA)
+test_that("weights_from_columns() return type is sparse matrix", {
+  a <- cbind(
+    c("k", "k", "l", NA, "m"),
+    c("l", "m", "k", "m", "k"),
+    c("m", NA, "m", NA, NA)
   )
-  expect_s4_class(weights_from_columns(member_cols), "sparseMatrix")
+  Wa <- weights_from_columns(a)
+  expect_s4_class(Wa, "sparseMatrix")
 })
 
-test_that("returned sparse matrix has correct dimensions", {
-  member_vec <- c("a,b,c", "a,c", "a", "b", "b,a")
-  expect_equal(dim(weights_from_vector(member_vec)), c(3, 5))
+test_that("interaction_weights() return type is sparse matrix", {
+  a <- rep(c("k", "l", "l,k"), 2)
+  b <- rep(c("m", "n"), 3)
+  Wa <- weights_from_vector(a)
+  Wb <- Matrix::fac2sparse(b)
+  Wab <- interaction_weights(Wa, Wb)
+  expect_s4_class(Wab, "sparseMatrix")
+})
 
-  member_cols <- cbind(
-    c("a", "a", "b", NA, "c"),
-    c("b", "c", "a", "c", "a"),
-    c("c", NA, "c", NA, NA)
+test_that("sparse matrix from weights_from_vector() has correct dimensions", {
+  a <- c("k,l,m", "k,m", "k", "l", "l,k")
+  Wa <- weights_from_vector(a)
+  expect_equal(dim(Wa), c(3, 5))
+})
+
+test_that("sparse matrix from weights_from_columns() has correct dimensions", {
+  a <- cbind(
+    c("k", "k", "l", NA, "m"),
+    c("l", "m", "k", "m", "k"),
+    c("m", NA, "m", NA, NA)
   )
-  expect_equal(dim(weights_from_columns(member_cols)), c(3, 5))
+  Wa <- weights_from_columns(a)
+  expect_equal(dim(Wa), c(3, 5))
 })
 
-test_that("alternative string delimiters work", {
-  member_vec <- c("a;b;c", "a;c", "a", "b", "b;a")
-  expect_equal(dim(weights_from_vector(member_vec, sep = ";")), c(3, 5))
+test_that("sparse matrix from interaction_weights() has correct dimensions", {
+  a <- rep(c("k", "l", "l,k"), 2)
+  b <- rep(c("m", "n"), 3)
+  Wa <- weights_from_vector(a)
+  Wb <- Matrix::fac2sparse(b)
+  Wab <- interaction_weights(Wa, Wb)
+  expect_equal(dim(Wab), c(4, 6))
 })
 
-test_that("returned sparse matrices are correct", {
-  reference <- as.matrix(t(data.frame(
+test_that("alternative string delimiters in weights_from_vector() work", {
+  j <- c("a;b;c", "a;c", "a", "b", "b;a")
+  Wj <- weights_from_vector(j, sep = ";")
+  expect_equal(dim(Wj), c(3, 5))
+})
+
+test_that("returned sparse matrix from weights_from_vector() is correct", {
+  Wreference <- as.matrix(t(data.frame(
     a = c(1, 1, 1, 0, 1),
     b = c(1, 0, 1, 0, 0),
     c = c(1, 1, 1, 1, 1),
     row.names = 1:5
   )))
+  j <- c("a,b,c", "a,c", "b,a,c", "c", "c,a")
+  Wj <- as.matrix(weights_from_vector(j))
+  expect_equal(Wj, Wreference)
+})
 
-  test_vec <- as.matrix(weights_from_vector(member_vec <- c(
-    "a,b,c",
-    "a,c",
-    "b,a,c",
-    "c",
-    "c,a"
+test_that("returned sparse matrix from weights_from_columns() is correct", {
+  Wreference <- as.matrix(t(data.frame(
+    a = c(1, 1, 1, 0, 1),
+    b = c(1, 0, 1, 0, 0),
+    c = c(1, 1, 1, 1, 1),
+    row.names = 1:5
   )))
-  expect_equal(test_vec, reference)
-
-  test_cols <- as.matrix(weights_from_columns(cbind(
+  j <- cbind(
     c("a", "a", "b", NA, "c"),
     c("b", "c", "a", "c", "a"),
     c("c", NA, "c", NA, NA)
-  )))
-  expect_equal(test_cols, reference)
+  )
+  Wj <- as.matrix(weights_from_columns(j))
+  expect_equal(Wj, Wreference)
 })
