@@ -71,11 +71,12 @@ weights_from_columns <- function(membership_columns) {
 #' Wab <- interaction_weights(Wa, Wb)
 interaction_weights <- function(a, b) {
   abrows <- as.character(interaction(expand.grid(rownames(a), rownames(b))))
-  ab <- Matrix::Matrix(0, nrow=length(abrows), ncol=ncol(a),
-               dimnames=list(abrows, colnames(a)))
-  for (i in 1:length(rownames(a))) {
-    for (j in 1:length(rownames(b))) {
-      ab[((j - 1) * length(rownames(a))) + i,] <- a[i,, drop=FALSE] * b[j,, drop=FALSE]
+  ab <- Matrix::Matrix(0, nrow = length(abrows), ncol = ncol(a),
+                       dimnames = list(abrows, colnames(a)))
+  for (i in seq_along(rownames(a))) {
+    for (j in seq_along(rownames(b))) {
+      ab[((j - 1) * length(rownames(a))) + i, ] <-
+        a[i, , drop = FALSE] * b[j, , drop = FALSE]
     }
   }
   return(ab)
