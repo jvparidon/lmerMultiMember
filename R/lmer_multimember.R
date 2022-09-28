@@ -620,7 +620,8 @@ plot_membership_matrix.default <- function(x, varname = NULL, ...) {
       x = list(
         at = seq_len(ncol(x)),
         labels = colnames(x),
-        alternating = 3
+        alternating = 3,
+        rot = 45
       ),
       y = list(
         at = seq_len(nrow(x)),
