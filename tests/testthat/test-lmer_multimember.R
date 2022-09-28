@@ -273,6 +273,19 @@ test_that("calling lmer with lmerTest loaded returns the correct types", {
   expect_s3_class(summ, "summary.lmerModLmerTestMultiMember")
 })
 
+test_that("multimembership dummy var in a nested grouping causes an error", {
+  x <- runif(60, 0, 1)
+  df <- data.frame(
+    x = x,
+    y = rnorm(60, 1, 1) + x,
+    memberships = rep(c("a", "b", "b,a"), 20),
+    other = rep(c("x", "y"), 30)
+  )
+  Wm <- weights_from_vector(df$memberships)
+  expect_error(lmer(y ~ x + (1 + x | members/other), data = df,
+                    memberships = list(members = Wm)))
+})
+
 test_that("bootstrap and profile likelihood CIs work (and roughly match)", {
   # make some toy data
   set.seed(42)

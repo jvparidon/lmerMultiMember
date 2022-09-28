@@ -10,16 +10,16 @@ weights_from_columns(membership_columns)
 \item{membership_columns}{columns containing group memberships}
 }
 \value{
-sparse weight matrix
+sparse weight/indicator matrix of type Matrix::dgCmatrix
 }
 \description{
 Provides a helper function for generating weight matrices
 }
 \examples{
-member_cols <- cbind(
-  c("a", "a", "b", NA, "c"),
-  c("b", "c", "a", "c", "a"),
-  c("c", NA, "c", NA, NA)
+a <- cbind(
+  c("k", "k", "l", NA, "m"),
+  c("l", "m", "k", "m", "k"),
+  c("m", NA, "m", NA, NA)
 )
-weights_from_columns(member_cols)
+Wa <- weights_from_columns(a)
 }

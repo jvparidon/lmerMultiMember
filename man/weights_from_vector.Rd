@@ -12,12 +12,12 @@ weights_from_vector(membership_vector, sep = ",")
 \item{sep}{separator that delimits group memberships in membership_vector}
 }
 \value{
-sparse weight matrix
+sparse weight/indicator matrix of type Matrix::dgCmatrix
 }
 \description{
 Provides a helper function for generating weight matrices
 }
 \examples{
-member_vec <- c("a,b,c", "a,c", "a", "b", "b,a")
-weights_from_vector(member_vec)
+a <- c("k,l,m", "k,m", "k", "l", "l,k")
+Wa <- weights_from_vector(a)
 }

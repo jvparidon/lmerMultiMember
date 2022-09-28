@@ -3,12 +3,12 @@
 #' @name weights_from_vector
 #' @param membership_vector vector of strings containing group memberships
 #' @param sep separator that delimits group memberships in membership_vector
-#' @return sparse weight matrix
+#' @return sparse weight/indicator matrix of type Matrix::dgCmatrix
 #' @export
 #' @import stats utils methods
 #' @examples
-#' member_vec <- c("a,b,c", "a,c", "a", "b", "b,a")
-#' weights_from_vector(member_vec)
+#' a <- c("k,l,m", "k,m", "k", "l", "l,k")
+#' Wa <- weights_from_vector(a)
 weights_from_vector <- function(membership_vector, sep = ",") {
 
   # get number of observations
@@ -29,15 +29,15 @@ weights_from_vector <- function(membership_vector, sep = ",") {
 #' @description Provides a helper function for generating weight matrices
 #' @name weights_from_columns
 #' @param membership_columns columns containing group memberships
-#' @return sparse weight matrix
+#' @return sparse weight/indicator matrix of type Matrix::dgCmatrix
 #' @export
 #' @examples
-#' member_cols <- cbind(
-#'   c("a", "a", "b", NA, "c"),
-#'   c("b", "c", "a", "c", "a"),
-#'   c("c", NA, "c", NA, NA)
+#' a <- cbind(
+#'   c("k", "k", "l", NA, "m"),
+#'   c("l", "m", "k", "m", "k"),
+#'   c("m", NA, "m", NA, NA)
 #' )
-#' weights_from_columns(member_cols)
+#' Wa <- weights_from_columns(a)
 weights_from_columns <- function(membership_columns) {
 
   # get number of observations
@@ -51,6 +51,35 @@ weights_from_columns <- function(membership_columns) {
 
   # hand off to idx_to_weights
   return(idx_to_weights(idx, nobs))
+}
+
+
+#' @title Weight matrix from the interaction of two other weight matrices
+#' @description Provides a helper function for pre-generating interactions.
+#' Takes sparse weight/indicator matrices generated with e.g.
+#' Matrix::fac2sparse() or weights_from_vector() as input.
+#' @name interaction_weights
+#' @param a sparse weight/indicator matrix of class Matrix::dgCmatrix
+#' @param b sparse weight/indicator matrix of class Matrix::dgCmatrix
+#' @return sparse interaction weight/indicator matrix of class Matrix::dgCmatrix
+#' @export
+#' @examples
+#' a <- rep(c("k", "l", "l,k"), 2)
+#' b <- rep(c("m", "n"), 3)
+#' Wa <- weights_from_vector(a)
+#' Wb <- Matrix::fac2sparse(b)
+#' Wab <- interaction_weights(Wa, Wb)
+interaction_weights <- function(a, b) {
+  abrows <- as.character(interaction(expand.grid(rownames(a), rownames(b))))
+  ab <- Matrix::Matrix(0, nrow = length(abrows), ncol = ncol(a),
+                       dimnames = list(abrows, colnames(a)))
+  for (i in seq_along(rownames(a))) {
+    for (j in seq_along(rownames(b))) {
+      ab[((j - 1) * length(rownames(a))) + i, ] <-
+        a[i, , drop = FALSE] * b[j, , drop = FALSE]
+    }
+  }
+  return(ab)
 }
 
 
