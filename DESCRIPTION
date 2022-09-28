@@ -1,6 +1,6 @@
 Package: lmerMultiMember
 Title: Multimember Random Effects Wrapper for lme4
-Version: 0.0.3
+Version: 0.9.0
 Authors@R: c(person("Jeroen", "van Paridon", , "jvparidon@gmail.com", role = c("aut", "cre"),
                     comment = c(ORCID = "0000-0002-5384-8772")),
              person("Ben", "Bolker", , , role = c("aut"),
