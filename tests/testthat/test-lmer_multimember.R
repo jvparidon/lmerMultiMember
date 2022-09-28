@@ -275,6 +275,7 @@ test_that("calling lmer with lmerTest loaded returns the correct types", {
 
 test_that("bootstrap and profile likelihood CIs work (and roughly match)", {
   # make some toy data
+  set.seed(42)
   x <- runif(600, 0, 1)
   df <- data.frame(
     x = x,
