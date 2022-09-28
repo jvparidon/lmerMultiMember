@@ -1,7 +1,7 @@
 test_that("lmer return type is both lmerMod and lmerModMultiMember", {
   df <- data.frame(
     x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
+    y = rnorm(60, 1, 0.6),
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   weights <- weights_from_vector(df$memberships)
@@ -63,7 +63,7 @@ test_that("glmer pass through to lme4 works", {
 test_that("lmer with devFunOnly = TRUE works", {
   df <- data.frame(
     x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
+    y = rnorm(60, 1, 0.6),
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   weights <- weights_from_vector(df$memberships)
@@ -174,7 +174,7 @@ test_that("summary.merModMultiMember wih incorrect type throws error", {
 
   df <- data.frame(
     x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
+    y = rnorm(60, 1, 0.6),
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   member_matrix <- weights_from_vector(df$memberships)
@@ -213,7 +213,7 @@ test_that("summary.merModMultiMember has the right attributes and prints", {
 test_that("plot_membership_hist returns a plot for each object type", {
   df <- data.frame(
     x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
+    y = rnorm(60, 1, 0.6),
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   member_matrix <- weights_from_vector(df$memberships)
@@ -233,7 +233,7 @@ test_that("plot_membership_hist returns a plot for each object type", {
 test_that("plot_membership_matrix returns a plot for each object type", {
   df <- data.frame(
     x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
+    y = rnorm(60, 1, 0.6),
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   member_matrix <- weights_from_vector(df$memberships)
@@ -253,7 +253,7 @@ test_that("plot_membership_matrix returns a plot for each object type", {
 test_that("calling lmer with lmerTest loaded returns the correct types", {
   df <- data.frame(
     x = runif(60, 0, 1),
-    y = rbinom(60, 1, 0.6),
+    y = rnorm(60, 1, 0.6),
     memberships = rep(c("a,b,c", "a,c", "a", "b", "b,a", "b,c,a"), 10)
   )
   member_matrix <- weights_from_vector(df$memberships)
@@ -279,21 +279,23 @@ test_that("bootstrap and profile likelihood CIs work (and roughly match)", {
   x <- runif(600, 0, 1)
   df <- data.frame(
     x = x,
-    y = rep(rbinom(12, 1, 0.6), 50) + (x * 1.0),
+    y = rnorm(600, 1, 1) + x,
     j = rep(c("a", "b", "b,a"), 200),
     k = rep(c("m", "n"), 300)
   )
+  # fit model
   m <- lmer(y ~ x + (1 | Wj),
        data = df,
        memberships = list(Wj = weights_from_vector(df$j))
   )
+  # compute CIs using profile likelihood and bootstrap methods
   suppressMessages({
     profil <- confint(m, method = "profile")
     bootstrap <- confint(m, method = "boot")
   })
+  # check that returned types are correct
   expect_type(profil, "double")
   expect_type(bootstrap, "double")
-  # TODO: decide whether testing for equality with a tolerance of 1e-1 is
-  # sufficiently lenient for this test to pass unless there are serious issues
-  expect_equal(bootstrap["x", ], profil["x", ], tolerance = 1e-1)
+  # check that outcomes are equal with tolerance 1e-2
+  expect_equal(bootstrap["x", ], profil["x", ], tolerance = 1e-2)
 })
