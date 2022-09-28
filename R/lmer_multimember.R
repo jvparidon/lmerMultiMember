@@ -93,7 +93,7 @@ lmer <- function(formula,
       subformula <- as.formula(substitute(~z, list(z = bar_idx[[i]][[2]])))
 
       # construct model matrix & compute Khatri-Rao product
-      X <- model.matrix(subformula, data[complete.cases(data), , drop=FALSE])
+      X <- model.matrix(subformula, data[complete.cases(data), , drop = FALSE])
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
       # FIXME: mess with names?
@@ -260,7 +260,7 @@ glmer <- function(formula,
       subformula <- as.formula(substitute(~z, list(z = bar_idx[[i]][[2]])))
 
       # construct model matrix & compute Khatri-Rao product
-      X <- model.matrix(subformula, data[complete.cases(data), , drop=FALSE])
+      X <- model.matrix(subformula, data[complete.cases(data), , drop = FALSE])
       Zt <- Matrix::KhatriRao(M, t(X), make.dimnames = TRUE)
 
       # FIXME: mess with names?
@@ -518,7 +518,7 @@ summary.merModMultiMember <- function(object, ...) {
 #' @param ddf method for computing degrees of freedom, used by lmerTest
 #' @return summary of merModMultiMember object
 #' @export
-summary.lmerModLmerTestMultiMember <- function(object, ..., ddf="lme4") {
+summary.lmerModLmerTestMultiMember <- function(object, ..., ddf = "lme4") {
   if (!inherits(object, "lmerModLmerTestMultiMember")) {
     stop(
       "Cannot compute summary for objects of class: ",
@@ -532,7 +532,7 @@ summary.lmerModLmerTestMultiMember <- function(object, ..., ddf="lme4") {
     # add merModMultiMember class
     class(summ) <- c("summary.merModMultiMember", class(summ))
   } else {
-    summ <- summary(as(object, "lmerModLmerTest"), ..., ddf=ddf)
+    summ <- summary(as(object, "lmerModLmerTest"), ..., ddf = ddf)
     # add lmerModMultiMemberLmerTest class
     class(summ) <- c("summary.lmerModLmerTestMultiMember", class(summ))
   }
@@ -587,7 +587,7 @@ print.summary.lmerModLmerTestMultiMember <- function(x, ...) {
 #' more than one
 #' @param ... additional arguments to pass on to Matrix::image
 #' @export
-plot_membership_matrix <- function(x, varname=NULL, ...) {
+plot_membership_matrix <- function(x, varname = NULL, ...) {
   UseMethod("plot_membership_matrix")
 }
 
@@ -597,7 +597,7 @@ plot_membership_matrix <- function(x, varname=NULL, ...) {
 #' @param varname name of the multimembership variable, will be used as title
 #' @param ... additional arguments to pass on to Matrix::image
 #' @export
-plot_membership_matrix.default <- function(x, varname=NULL, ...) {
+plot_membership_matrix.default <- function(x, varname = NULL, ...) {
   x <- Matrix::t(as(x, "dgCMatrix"))
   Matrix::image(
     x,
@@ -607,12 +607,12 @@ plot_membership_matrix.default <- function(x, varname=NULL, ...) {
     xlab = "item",
     scales = list(
       x = list(
-        at = seq(1:ncol(x)),
+        at = seq_len(ncol(x)),
         labels = colnames(x),
         alternating = 3
       ),
       y = list(
-        at = seq(1:nrow(x)),
+        at = seq_len(nrow(x)),
         labels = rownames(x),
         alternating = 3
       )
@@ -650,7 +650,7 @@ plot_membership_matrix.summary.merModMultiMember <- function(x, varname, ...) {
 #' more than one
 #' @param ... additional arguments to pass on to graphics::hist
 #' @export
-plot_membership_hist <- function(x, varname=NULL, ...) {
+plot_membership_hist <- function(x, varname = NULL, ...) {
   UseMethod("plot_membership_hist")
 }
 
@@ -660,8 +660,8 @@ plot_membership_hist <- function(x, varname=NULL, ...) {
 #' @param varname name of the multimembership variable, will be used as title
 #' @param ... additional arguments to pass on to graphics::hist
 #' @export
-plot_membership_hist.dgCMatrix <- function(x, varname=NULL, ...) {
-  sums = Matrix::colSums(x)
+plot_membership_hist.dgCMatrix <- function(x, varname = NULL, ...) {
+  sums <- Matrix::colSums(x)
   graphics::hist(
     sums,
     main = varname,
