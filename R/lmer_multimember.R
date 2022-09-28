@@ -82,6 +82,17 @@ lmer <- function(formula,
   for (i in seq_along(bar_idx)) {
     RE_name <- deparse(bar_idx[[i]])
 
+    # check if any of the multimembership dummies are used in nested groupings
+    RE_parts <- unlist(strsplit(RE_vars[i], ":"))
+    if ((length(RE_parts) > 1) &
+        (length(intersect(RE_parts, multi_RE_names)) > 0)) {
+      # throw error
+      stop(paste0("lmerMultiMember does not support the use of multimembership",
+                  " dummies in nested groupings.\nUse interaction_weights() to",
+                  " pre-generate indicator/weight matrices for nested",
+                  " multimembership groupings."))
+    }
+
     # find corresponding random-effects term
     RE_idx <- which(multi_RE_names == RE_vars[i])
 
