@@ -29,5 +29,18 @@ Specifying a multimembership model in `lmerMultiMember` works just like specifyi
 
 Creating a membership matrix might seem a little daunting, but we provide a helper function `lmerMultiMember::weights_from_vector` that creates a membership matrix from a vector of group memberships in comma-separated strings (e.g. `c("A,B", "A,B,C", "B", "C,A")`) so if you have group memberships documented in your dataset it should be easy enough to create a membership matrix for you model.  
 
+### Nested random effects groupings work a little differently
+
+`lmerMultiMember` uses dummy variables and fake factors internally to 'trick' `lme4` into accepting multiple membership random effects. Unfortunately, that system of dummies and fakes means that you can't specify a nested multimembership random effects grouping using the normal formula syntax. For example, `lmer(citations ~ word_count + (1 | author/journal), memberships = list(author = membership_matrix))` will throw an error, because the multiple membership author variable cannot be nested inside the journal grouping.
+
+The solution for this issue is to pre-generate an indicator/weight matrix for the nested grouping using the provided `lmerMultiMember::interaction_weights()` function. For example, given a dataframe `df` with multimembership `author` and single membership `journal` grouping variables, in order to get nested groupings, we could do the following:
+
+```
+Wa <- weights_from_vectors(df$author)
+Wj <- Matrix::fac2sparse(df$journal)  # convert single membership vars to an indicator matrix with fac2sparse()
+Waj <- interaction_weights(Wa, Wj)
+lmer(citations ~ word_count + (1 | author) + (1 | authorXjournal), memberships = list(author = Wa, authorXjournal = Waj))
+```
+
 ### Contact
 If you have any issues fitting models with `lmerMultiMember`, feel free to contact Jeroen van Paridon at [vanparidon@wisc.edu](mailto:vanparidon@wisc.edu).
