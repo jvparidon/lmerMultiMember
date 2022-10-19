@@ -1,7 +1,7 @@
 Package: lmerMultiMember
-Title: Multimember Random Effects Wrapper for lme4
-Version: 0.9.1
-Authors@R: c(person("Jeroen", "van Paridon", , "jvparidon@gmail.com", role = c("aut", "cre"),
+Title: 'lmerMultiMember: Multiple membership random effects'
+Version: 0.10.0
+Authors@R: c(person("JP", "van Paridon", , "jvparidon@gmail.com", role = c("aut", "cre"),
                     comment = c(ORCID = "0000-0002-5384-8772")),
              person("Ben", "Bolker", , , role = c("aut"),
                     comment = c(ORCID = "0000-0002-2127-0443")),
@@ -24,3 +24,4 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+URL: https://jvparidon.github.io/lmerMultiMember/ https://github.com/jvparidon/lmerMultiMember
