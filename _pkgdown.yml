@@ -1,4 +1,6 @@
 url: https://jvparidon.github.io/lmerMultiMember/
 template:
   bootstrap: 5
-
+  bootswatch: flatly
+  bslib:
+    pkgdown-nav-height: 100px
