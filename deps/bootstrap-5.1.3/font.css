@@ -1,21 +1,16 @@
 @font-face {
-  font-family: 'Lato';
-  font-style: italic;
-  font-weight: 400;
-  font-display: swap;
-  src: url(fonts/S6u8w4BMUTPHjxswWA.woff) format('woff');
-}
-@font-face {
-  font-family: 'Lato';
+  font-family: 'Open Sans';
   font-style: normal;
   font-weight: 400;
+  font-stretch: normal;
   font-display: swap;
-  src: url(fonts/S6uyw4BMUTPHvxo.woff) format('woff');
+  src: url(fonts/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0C4k.woff) format('woff');
 }
 @font-face {
-  font-family: 'Lato';
+  font-family: 'Open Sans';
   font-style: normal;
   font-weight: 700;
+  font-stretch: normal;
   font-display: swap;
-  src: url(fonts/S6u9w4BMUTPHh6UVeww.woff) format('woff');
+  src: url(fonts/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1y4k.woff) format('woff');
 }
