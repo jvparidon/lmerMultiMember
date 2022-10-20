@@ -1,6 +1,14 @@
 url: https://jvparidon.github.io/lmerMultiMember/
+
+authors:
+  JP van Paridon:
+    href: https://jvparidon.io
+  footer:
+    roles: [cre]
+
 template:
   bootstrap: 5
-  bootswatch: flatly
+  bootswatch: simplex
   bslib:
     pkgdown-nav-height: 100px
+    primary: "#ee6a50"

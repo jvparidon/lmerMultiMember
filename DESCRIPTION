@@ -1,15 +1,17 @@
 Package: lmerMultiMember
-Title: 'lmerMultiMember: Multiple membership random effects'
-Version: 0.10.0
-Authors@R: c(person("JP", "van Paridon", , "jvparidon@gmail.com", role = c("aut", "cre"),
-                    comment = c(ORCID = "0000-0002-5384-8772")),
-             person("Ben", "Bolker", , , role = c("aut"),
-                    comment = c(ORCID = "0000-0002-2127-0443")),
-             person("Phillip", "Alday", , , role = c("aut"),
-                    comment = c(ORCID = "0000-0002-9984-5745")))
+Title: Multiple membership random effects
+Version: 0.10.1
+Authors@R: c(
+  person("JP", "van Paridon", email = "jvparidon@gmail.com",
+         role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5384-8772")),
+  person("Ben", "Bolker", role = c("aut"),
+         comment = c(ORCID = "0000-0002-2127-0443")),
+  person("Phillip", "Alday", role = c("aut"),
+         comment = c(ORCID = "0000-0002-9984-5745")))
+Maintainer: JP van Paridon <jvparidon@gmail.com>
 Description: Provides a wrapper around lme4::lmer to allow for multimembership
     random effects. Includes helper functions for creating weight matrices.
-License: MIT + file LICENSE
+License: MIT
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
@@ -24,4 +26,5 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://jvparidon.github.io/lmerMultiMember/ https://github.com/jvparidon/lmerMultiMember
+URL: https://jvparidon.github.io/lmerMultiMember/
+BugReports: https://github.com/jvparidon/lmerMultiMember/issues
