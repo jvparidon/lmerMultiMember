@@ -14,8 +14,6 @@ template:
   bslib:
     pkgdown-nav-height: 100px
     primary: "#ee6a50"
-
-template:
   opengraph:
     twitter:
       creator: "@jvparidon"
