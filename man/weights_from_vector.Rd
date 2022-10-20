@@ -12,7 +12,7 @@ weights_from_vector(membership_vector, sep = ",")
 \item{sep}{separator that delimits group memberships in membership_vector}
 }
 \value{
-sparse weight/indicator matrix of type Matrix::dgCmatrix
+sparse weight/indicator matrix of type Matrix::dgCMatrix
 }
 \description{
 Provides a helper function for generating weight matrices
