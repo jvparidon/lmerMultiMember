@@ -3,7 +3,7 @@
 #' @name weights_from_vector
 #' @param membership_vector vector of strings containing group memberships
 #' @param sep separator that delimits group memberships in membership_vector
-#' @return sparse weight/indicator matrix of type Matrix::dgCmatrix
+#' @return sparse weight/indicator matrix of type Matrix::dgCMatrix
 #' @export
 #' @import stats utils methods
 #' @examples
@@ -29,7 +29,7 @@ weights_from_vector <- function(membership_vector, sep = ",") {
 #' @description Provides a helper function for generating weight matrices
 #' @name weights_from_columns
 #' @param membership_columns columns containing group memberships
-#' @return sparse weight/indicator matrix of type Matrix::dgCmatrix
+#' @return sparse weight/indicator matrix of type Matrix::dgCMatrix
 #' @export
 #' @examples
 #' a <- cbind(
@@ -59,9 +59,9 @@ weights_from_columns <- function(membership_columns) {
 #' Takes sparse weight/indicator matrices generated with e.g.
 #' Matrix::fac2sparse() or weights_from_vector() as input.
 #' @name interaction_weights
-#' @param a sparse weight/indicator matrix of class Matrix::dgCmatrix
-#' @param b sparse weight/indicator matrix of class Matrix::dgCmatrix
-#' @return sparse interaction weight/indicator matrix of class Matrix::dgCmatrix
+#' @param a sparse weight/indicator matrix of class Matrix::dgCMatrix
+#' @param b sparse weight/indicator matrix of class Matrix::dgCMatrix
+#' @return sparse interaction weight/indicator matrix of class Matrix::dgCMatrix
 #' @export
 #' @examples
 #' a <- rep(c("k", "l", "l,k"), 2)
@@ -80,6 +80,40 @@ interaction_weights <- function(a, b) {
     }
   }
   return(ab)
+}
+
+
+#' @title Indicator matrix from two vectors for Bradley-Terry models
+#' @description Provides a helper function for generating indicator matrices
+#' @name bradleyterry_from_vectors
+#' @param winners vector of strings containing the winner for each observation
+#' @param losers vector of strings containing the loser for each observation
+#' @return sparse Bradley-Terry indicator matrix of type Matrix::dgCMatrix
+#' @export
+#' @examples
+#' winners <- c("k", "k", "l", "m", "m")
+#' losers <- c("l", "m", "m", "k", "l")
+#' Wwl <- bradleyterry_from_vectors(winners, losers)
+bradleyterry_from_vectors <- function(winners, losers) {
+
+  # get number of observations
+  nobs <- length(winners)
+
+  # cast winners and losers to sparse matrices
+  Wa <- Matrix::fac2sparse(winners)
+  Wb <- Matrix::fac2sparse(losers)
+
+  # create empty sparse matrix with rows from union of Wa and Wb rownames
+  Wab_rownames <- union(rownames(Wa), rownames(Wb))
+  Wab <- Matrix::Matrix(0, nrow = length(Wab_rownames), ncol = ncol(Wa),
+                        dimnames = list(Wab_rownames, as.character(1:nobs)))
+
+  # fill sparse matrix with Wa indicators and negative Wb indicators
+  Wab[rownames(Wa),] <- Wa
+  Wab[rownames(Wb),] <- Wab[rownames(Wb),] - Wb
+
+  # return sparse Bradley-Terry indicator matrix
+  return(Wab)
 }
 
 

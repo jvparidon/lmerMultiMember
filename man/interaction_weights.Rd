@@ -7,12 +7,12 @@
 interaction_weights(a, b)
 }
 \arguments{
-\item{a}{sparse weight/indicator matrix of class Matrix::dgCmatrix}
+\item{a}{sparse weight/indicator matrix of class Matrix::dgCMatrix}
 
-\item{b}{sparse weight/indicator matrix of class Matrix::dgCmatrix}
+\item{b}{sparse weight/indicator matrix of class Matrix::dgCMatrix}
 }
 \value{
-sparse interaction weight/indicator matrix of class Matrix::dgCmatrix
+sparse interaction weight/indicator matrix of class Matrix::dgCMatrix
 }
 \description{
 Provides a helper function for pre-generating interactions.

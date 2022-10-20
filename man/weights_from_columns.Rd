@@ -10,7 +10,7 @@ weights_from_columns(membership_columns)
 \item{membership_columns}{columns containing group memberships}
 }
 \value{
-sparse weight/indicator matrix of type Matrix::dgCmatrix
+sparse weight/indicator matrix of type Matrix::dgCMatrix
 }
 \description{
 Provides a helper function for generating weight matrices
