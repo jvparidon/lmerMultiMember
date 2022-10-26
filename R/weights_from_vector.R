@@ -117,6 +117,44 @@ bradleyterry_from_vectors <- function(winners, losers) {
 }
 
 
+#' @title Indicator matrix from vectors for Bradley-Terry models
+#' @description Provides a helper function for generating indicator matrices
+#' @name bradleyterry_from_vectors2
+#' @param outcomes win/lose outcome from the perspective of a, the "home team"
+#' @param a vector of strings containing the "home team"
+#' @param b vector of strings containing the "opposing team"
+#' @return sparse Bradley-Terry indicator matrix of type Matrix::dgCMatrix
+#' @export
+#' @examples
+#' outcomes <- rbinom(1, 5, .5)
+#' a <- c("k", "k", "l", "m", "m")
+#' b <- c("l", "m", "m", "k", "l")
+#' W <- bradleyterry_from_vectors2(outcomes, a, b)
+bradleyterry_from_vectors2 <- function(outcomes, a, b) {
+
+  # get number of observations
+  nobs <- length(outcomes)
+
+  # cast a and b vectors to sparse matrices
+  Wa <- Matrix::fac2sparse(a)
+  Wb <- Matrix::fac2sparse(b)
+
+  #
+
+  # create empty sparse matrix with rows from union of Wa and Wb rownames
+  Wab_rownames <- union(rownames(Wa), rownames(Wb))
+  Wab <- Matrix::Matrix(0, nrow = length(Wab_rownames), ncol = ncol(Wa),
+                        dimnames = list(Wab_rownames, as.character(1:nobs)))
+
+  # fill sparse matrix with Wa indicators and negative Wb indicators
+  Wab[rownames(Wa),] <- Wa
+  Wab[rownames(Wb),] <- Wab[rownames(Wb),] - Wb
+
+  # return sparse Bradley-Terry indicator matrix
+  return(Wab)
+}
+
+
 idx_to_weights <- function(idx, nobs) {
 
   # get sorted vector of unique groups
