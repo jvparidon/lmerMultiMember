@@ -1,0 +1,130 @@
+---
+title: "Bradley-Terry models in lmerMultiMember"
+output: rmarkdown::html_vignette
+author: "Jeroen van Paridon"
+date: "2022-10-26"
+vignette: >
+  %\VignetteIndexEntry{Bradley-Terry models in lmerMultiMember}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: inline
+---
+
+## Off-label usage of lmerMultiMember
+
+The ability to pass arbitrary random effects matrices to `lme4` makes `lmerMultiMember` useful for more than just vanilla multiple membership models. Any model that can be specified as a combination of "conventional" fixed effects and an arbitrary random effects matrix can be specified using `lmerMultiMember`. (Although for certain model specifications the underlying `lme4` model fitting may not converge.)
+
+One class of models that can be fit using lmerMultiMember is Bradley-Terry models, used to predict the probability of a given individual winning in a paired comparison with another individual, even when information is incomplete (i.e. not every individual has directly encountered every other individual). One example application is to predict rankings of chess players, even if not each player in the list has played every other player.
+
+The Bradley-Terry model can be written as a Generalized Linear Mixed-effects Model (GLMM) as follows:
+$$\operatorname{logit}(P(i > j)) = \log\left(\frac{P(i > j)}{1 - P(i > j)}\right) = \log\left(\frac{P(i > j)}{P(j > i)}\right) = \beta_i - \beta_j$$
+If you're not that comfortable with the math, don't worry! This formulation of the Bradley-Terry model is just a logistic regression with a random effects matrix that has the usual positive indicators for one individual in each comparison, but negative indicators for the other individual. In this formulation we model the probability the the individual with the positive indicator "wins" the comparison. There is often a natural way to assign individuals to sides of the comparison, for instance by always giving the home team the positive indicator (in this case, if we model an intercept, that intercept represents the home field advantage) or, in chess, to always assign the player with the white pieces the positive indicator.
+
+`lmerMultiMember::bradleyterry_from_vectors()` is a helper function that creates the indicator matrix from a vector of home teams (i.e. individuals that will be assigned positive indicators) and a vector of visiting teams (i.e. individuals that will be assigned negative indicators). If this function is used to generate the indicator matrix, we will be modeling the probability of the home team winning.
+
+## Predicting NFL team rankings for the 2021 season
+
+To demonstrate how to specify and fit a Bradley-Terry model in `lmerMultiMember`, in this vignette we will rank National Football League teams by their performance in the 2021 season, even for teams who did not play a single game against each other during that season.
+
+NFL scores for the 2021 season are included with `lmerMultiMember` as a dataset, so all we need to do to load the data is load the package itself. Then, we can take a quick look at the data.
+
+```{r load_package, message = FALSE}
+
+# load packages
+library(lmerMultiMember)  # for dataset and modeling
+library(kableExtra)  # for displaying tabular data
+library(dplyr)  # for data manipulation
+library(sjPlot)  # for plotting model coefficients
+library(ggplot2)  # for general plotting stuff
+
+# display the NFL 2021 season data
+nfl_scores_2021 |>
+  kable() |>
+  kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 16) |>
+  scroll_box(height = "250px")
+
+```
+
+## Generating a Bradley-Terry indicator matrix and fitting a model
+
+From this dataset we can generate a Bradley-Terry indicator matrix using `lmerMultiMember::bradleyterry_from_vectors()`.
+
+```{r make_indicators}
+
+# generate indicator matrix from home team and visiting team vectors
+W <- bradleyterry_from_vectors(nfl_scores_2021$home_team,
+                               nfl_scores_2021$visiting_team)
+
+# check dimensions of indicator matrix (should be teams x games)
+# i.e. 32 x 285
+paste(c("rows/teams:", "columns/games:"), dim(W)) |> cat()
+
+```
+
+With the indicator matrix generated, all we need to do is specify a logistic `glmer()` model to predict wins by the home team, and insert our indicator model using a dummy variable.
+
+```{r fit_model}
+
+# convert winners to binary variable for more transparent interpretation
+nfl_scores_2021$home_win <- recode(nfl_scores_2021$winner,
+                                   "visiting" = 0, "home" = 1)
+
+# fit model
+m <- glmer(home_win ~ (1 | indicators),
+           family = binomial,
+           memberships = list(indicators = W),
+           data = nfl_scores_2021)
+
+# show model summary
+summary(m)
+
+```
+
+## Sanity check on random intercepts (team strength)
+
+With the model fit, we can start interpreting the coefficients. The intercept of the model represents the home field advantage (i.e. the probability of a home team winning, regardless of that team's strength). The strength of individual teams is captured in the random intercepts.
+
+```{r plot_intercepts, message = FALSE, dpi = 300}
+
+# plot random effects
+plot_model(m, type = 're', sort.est = TRUE, grid = FALSE,
+           line.size = 1.0, dot.size = 3.0) + 
+  coord_cartesian() +
+  theme_bw() +
+  ggtitle("Odds ratio of team winning against League-average team") +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 12, angle = 60, hjust = 1.0),
+        axis.text.y = element_text(size = 12),
+        plot.title = element_text(size = 14),
+        rect = element_rect(fill = "transparent")) +
+  scale_y_continuous(n.breaks = 8) +
+  geom_hline(yintercept = 1.0, color = 'coral2', size = 1.0) +
+  scale_color_manual(values = c("coral3", "coral1"))
+
+```
+
+While the model predicts on the scale of logits (log-odds), `sjPlot` automatically transforms the coefficients to odds ratios by exponentiating them. This is a fairly natural way of interpreting coefficients from a model like this, so let's take a look at the best and worst teams.
+
+The Los Angeles Rams, the team with the highest random intercept, has an odds ratio of almost 2, meaning they are favored 2:1 to win against the hypothetical average team in the League. The Rams were the eventual Super Bowl winners in 2021, so this seems like a sensible model prediction, at least superficially.
+
+The Jacksonville Jaguars, the team with the lowest random intercept, has an odds ratio of about .5, meaning their odds of beating the hypothetical League average team are 1:2, which is consistent with their League-worst 3-14 win/loss record.
+
+## Predicting the winner of an unplayed game
+
+So far, so good; the model correctly predicted the League's best and worst teams in the 2021 season. So what about our hypothetical matchup, the San Diego Chargers playing the Green Bay Packers?
+
+It's easiest to understand how to make this prediction if we compute it by hand. We start by looking up the random intercepts for the Packers (GB) and Chargers (LAC).
+
+```{r extract_intercepts}
+
+# extract random intercepts for Green Bay and the LA Chargers
+ranef(m)$indicators[c("GB", "LAC"), , drop=FALSE] |> round(2)
+
+```
+
+By exponentiating the difference between these intercepts, we can compute the odds ratio in favor of Green Bay winning this hypothetical matchup.
+
+$$OR(GB > LAC) = \exp(\beta_{GB} - \beta_{LAC}) = \exp(.50 - .07) = 1.54$$
+
+The odds of the 2021 Packers winning against the 2021 Chargers, disregarding any potential home field advantage, are 1.54:1.
