@@ -36,7 +36,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">lmerMultiMember</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.10.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.11.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,7 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/bradleyterry_models.html">Bradley-Terry models in lmerMultiMember</a>
     <a class="dropdown-item" href="../articles/group_membership.html">Group membership models using lmerMultiMember</a>
   </div>
 </li>
@@ -79,7 +80,8 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Group membership models using lmerMultiMember</h1>
-                        <h4 data-toc-skip class="author">Ben Bolker, adapted by Phillip Alday</h4>
+                        <h4 data-toc-skip class="author">Ben Bolker,
+adapted by Phillip Alday</h4>
             
       
       <small class="dont-index">Source: <a href="https://github.com/jvparidon/lmerMultiMember/blob/HEAD/vignettes/group_membership.Rmd" class="external-link"><code>vignettes/group_membership.Rmd</code></a></small>
@@ -91,19 +93,28 @@
 <div class="section level2">
 <h2 id="general-idea">General idea<a class="anchor" aria-label="anchor" href="#general-idea"></a>
 </h2>
-<p>Consider a situation where we have multiple items of some sort which have associated effects, but we can’t association observations with single items; instead, each observation is associated with a group of items. (Two examples which have come up are (1) authorship of papers and (2) hockey players on a team.) These are not quite identical to “multi-membership models” (in part because group membership is binary, i.e., not weighted), although similar techniques to those shown here could work for multi-membership models.</p>
+<p>Consider a situation where we have multiple items of some sort which
+have associated effects, but we can’t association observations with
+single items; instead, each observation is associated with a group of
+items. (Two examples which have come up are (1) authorship of papers and
+(2) hockey players on a team.) These are not quite identical to
+“multi-membership models” (in part because group membership is binary,
+i.e., not weighted), although similar techniques to those shown here
+could work for multi-membership models.</p>
 </div>
 <div class="section level2">
 <h2 id="simple-example">Simple example<a class="anchor" aria-label="anchor" href="#simple-example"></a>
 </h2>
-<p>Load packages (we don’t really need anything beyond lmerMultiMember; the rest are for convenience/drawing pictures).</p>
+<p>Load packages (we don’t really need anything beyond lmerMultiMember;
+the rest are for convenience/drawing pictures).</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jvparidon.github.io/lmerMultiMember/">lmerMultiMember</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bbolker/broom.mixed" class="external-link">broom.mixed</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme_get.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Matrix.R-forge.R-project.org/" class="external-link">Matrix</a></span><span class="op">)</span></span></code></pre></div>
-<p>Construct a simulated example: first, simulate the design (structure).</p>
+<p>Construct a simulated example: first, simulate the design
+(structure).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nm</span> <span class="op">&lt;-</span> <span class="fl">20</span> <span class="co"># number of groups</span></span>
 <span><span class="va">nobs</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
@@ -129,21 +140,34 @@
 <span>  <span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="group_membership_files/figure-html/unnamed-chunk-3-1.png" width="576"></p>
-<p>We can look at how many times a particular number of groups occurs (which should match <span class="math inline">\(Binomial(n=20, 0, p=0.25)\)</span>)</p>
+<p>We can look at how many times a particular number of groups occurs
+(which should match <span class="math inline">\(Binomial(n=20, 0,
+p=0.25)\)</span>)</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">pres</span><span class="op">)</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Multi-Group Membership"</span>,</span>
 <span>  xlab <span class="op">=</span> <span class="st">"Number of groups associated with an observation"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="group_membership_files/figure-html/unnamed-chunk-4-1.png" width="576"></p>
-<p>Since we chose which items/individuals to include for each observation randomly and independently (Bernoulli with probability 0.25), we have a highly variable number of individuals present for different observations (1-11). This would be realistic for some examples (authorship), unrealistic for others (hockey) … I don’t think it really makes much difference computationally (statistically, having some observations with a single member must make estimation more powerful …) The 0/1 matrix (indicator variable for whether item <span class="math inline">\(i\)</span> is included in observation <span class="math inline">\(j\)</span>) is convenient, and will turn out to be the form we need for inclusion in the model. It should be fairly straightforward to convert other forms (e.g. a list of sets of items associated with each observation) to this form …</p>
+<p>Since we chose which items/individuals to include for each
+observation randomly and independently (Bernoulli with probability
+0.25), we have a highly variable number of individuals present for
+different observations (1-11). This would be realistic for some examples
+(authorship), unrealistic for others (hockey) … I don’t think it really
+makes much difference computationally (statistically, having some
+observations with a single member must make estimation more powerful …)
+The 0/1 matrix (indicator variable for whether item <span class="math inline">\(i\)</span> is included in observation <span class="math inline">\(j\)</span>) is convenient, and will turn out to be
+the form we need for inclusion in the model. It should be fairly
+straightforward to convert other forms (e.g. a list of sets of items
+associated with each observation) to this form …</p>
 <p>Now simulate the response variable.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nm</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="co">## item-level effects</span></span>
 <span><span class="co">## n.b. get in trouble if we don't add residual error</span></span>
 <span><span class="co">## (theta is scaled relative to residual error)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">pres</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">b</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">nobs</span>, sd <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span></span></code></pre></div>
-<p>Fit and the results look OK (correct item and residual variance estimated):</p>
+<p>Fit and the results look OK (correct item and residual variance
+estimated):</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lmer.html">lmer</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">membership</span><span class="op">)</span>,</span>
 <span>  data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">y</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">nobs</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -191,7 +215,8 @@
 <div class="section level2">
 <h2 id="zooming-in-equal-indepent-contributions">Zooming In: Equal, indepent contributions<a class="anchor" aria-label="anchor" href="#zooming-in-equal-indepent-contributions"></a>
 </h2>
-<p>Here, we look at a model where each observation is associated with precisely two groups to get a better feel.</p>
+<p>Here, we look at a model where each observation is associated with
+precisely two groups to get a better feel.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">nobs</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
@@ -279,7 +304,9 @@
 <span><span class="co">## Group memberships per observation for multiple membership REs:</span></span>
 <span><span class="co">##   Min. per obs. Mean per obs. Max. per obs.</span></span>
 <span><span class="co">## g 1             1.886         2</span></span></code></pre>
-<p>Not ideal, but not horrible – it looks like there is an upward bias, but this is inline with the estimate for the group standard deviation being a bit off.</p>
+<p>Not ideal, but not horrible – it looks like there is an upward bias,
+but this is inline with the estimate for the group standard deviation
+being a bit off.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">m2</span>, effects <span class="op">=</span> <span class="st">"ran_vals"</span><span class="op">)</span></span>
 <span><span class="va">dd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/transform.html" class="external-link">transform</a></span><span class="op">(</span><span class="va">dd</span>, level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">level</span>, <span class="va">estimate</span><span class="op">)</span><span class="op">)</span></span>
@@ -424,17 +451,17 @@
 <span><span class="co">## </span></span>
 <span><span class="co">## Random effects:</span></span>
 <span><span class="co">##  Groups   Name        Variance  Std.Dev. Corr       </span></span>
-<span><span class="co">##  g        (Intercept) 1.031e+01 3.21113             </span></span>
-<span><span class="co">##           x           3.127e-02 0.17682  -0.07      </span></span>
+<span><span class="co">##  g        (Intercept) 1.031e+01 3.21108             </span></span>
+<span><span class="co">##           x           3.128e-02 0.17685  -0.07      </span></span>
 <span><span class="co">##           z           1.928e-04 0.01389   0.43  0.87</span></span>
 <span><span class="co">##  Residual             1.358e+00 1.16543             </span></span>
 <span><span class="co">## Number of obs: 10000, groups:  g, 26</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Fixed effects:</span></span>
 <span><span class="co">##             Estimate Std. Error t value</span></span>
-<span><span class="co">## (Intercept)  2.91077    0.13118   22.19</span></span>
-<span><span class="co">## x            2.09221    0.07820   26.75</span></span>
-<span><span class="co">## z            2.99998    0.04062   73.86</span></span>
+<span><span class="co">## (Intercept)  2.91077    0.13119   22.19</span></span>
+<span><span class="co">## x            2.09222    0.07821   26.75</span></span>
+<span><span class="co">## z            2.99999    0.04062   73.86</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Correlation of Fixed Effects:</span></span>
 <span><span class="co">##   (Intr) x     </span></span>
@@ -511,13 +538,13 @@
 <span><span class="co">## </span></span>
 <span><span class="co">## other attached packages:</span></span>
 <span><span class="co">## [1] Matrix_1.4-1           ggplot2_3.3.6          broom.mixed_0.2.9.4   </span></span>
-<span><span class="co">## [4] lmerMultiMember_0.10.1</span></span>
+<span><span class="co">## [4] lmerMultiMember_0.11.0</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
 <span><span class="co">##  [1] Rcpp_1.0.9        lattice_0.20-45   tidyr_1.2.1       listenv_0.8.0    </span></span>
 <span><span class="co">##  [5] rprojroot_2.0.3   digest_0.6.30     utf8_1.2.2        parallelly_1.32.1</span></span>
 <span><span class="co">##  [9] R6_2.5.1          backports_1.4.1   evaluate_0.17     highr_0.9        </span></span>
-<span><span class="co">## [13] pillar_1.8.1      rlang_1.0.6       minqa_1.2.4       furrr_0.3.1      </span></span>
+<span><span class="co">## [13] pillar_1.8.1      rlang_1.0.6       minqa_1.2.5       furrr_0.3.1      </span></span>
 <span><span class="co">## [17] nloptr_2.0.3      jquerylib_0.1.4   rmarkdown_2.17    pkgdown_2.0.6    </span></span>
 <span><span class="co">## [21] labeling_0.4.2    textshaping_0.3.6 desc_1.4.2        splines_4.2.1    </span></span>
 <span><span class="co">## [25] lme4_1.1-30       stringr_1.4.1     munsell_0.5.0     broom_1.0.1      </span></span>
@@ -525,10 +552,10 @@
 <span><span class="co">## [33] globals_0.16.1    htmltools_0.5.3   tidyselect_1.2.0  tibble_3.1.8     </span></span>
 <span><span class="co">## [37] codetools_0.2-18  fansi_1.0.3       future_1.28.0     dplyr_1.0.10     </span></span>
 <span><span class="co">## [41] withr_2.5.0       MASS_7.3-57       grid_4.2.1        nlme_3.1-157     </span></span>
-<span><span class="co">## [45] jsonlite_1.8.2    gtable_0.3.1      lifecycle_1.0.3   magrittr_2.0.3   </span></span>
+<span><span class="co">## [45] jsonlite_1.8.3    gtable_0.3.1      lifecycle_1.0.3   magrittr_2.0.3   </span></span>
 <span><span class="co">## [49] scales_1.2.1      cli_3.4.1         stringi_1.7.8     cachem_1.0.6     </span></span>
-<span><span class="co">## [53] farver_2.1.1      fs_1.5.2          bslib_0.4.0       ragg_1.2.3       </span></span>
-<span><span class="co">## [57] generics_0.1.3    vctrs_0.4.2       boot_1.3-28       tools_4.2.1      </span></span>
+<span><span class="co">## [53] farver_2.1.1      fs_1.5.2          bslib_0.4.0       ragg_1.2.4       </span></span>
+<span><span class="co">## [57] generics_0.1.3    vctrs_0.5.0       boot_1.3-28       tools_4.2.1      </span></span>
 <span><span class="co">## [61] forcats_0.5.2     glue_1.6.2        purrr_0.3.5       parallel_4.2.1   </span></span>
 <span><span class="co">## [65] fastmap_1.1.0     yaml_2.3.6        colorspace_2.0-3  memoise_2.0.1    </span></span>
 <span><span class="co">## [69] knitr_1.40        sass_0.4.2</span></span></code></pre>
