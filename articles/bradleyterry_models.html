@@ -101,13 +101,13 @@ specified as a combination of “conventional” fixed effects and an
 arbitrary random effects matrix can be specified using
 <code>lmerMultiMember</code>. (Although for certain model specifications
 the underlying <code>lme4</code> model fitting may not converge.)</p>
-<p>One class of models that can be fit using lmerMultiMember is
-Bradley-Terry models, used to predict the probability of a given
-individual winning in a paired comparison with another individual, even
-when information is incomplete (i.e. not every individual has directly
-encountered every other individual). One example application is to
-predict rankings of chess players, even if not each player in the list
-has played every other player.</p>
+<p>One class of models that can be fit using
+<code>lmerMultiMember</code> are Bradley-Terry models, used to predict
+the probability of a given individual winning in a paired comparison
+with another individual, even when information is incomplete (i.e. not
+every individual has directly encountered every other individual). One
+fairly prominent application is to predict rankings of chess players,
+even if not every player in the list has played every other player.</p>
 <p>The Bradley-Terry model can be written as a Generalized Linear
 Mixed-effects Model (GLMM) as follows: <span class="math display">\[\operatorname{logit}(P(i &gt; j)) =
 \log\left(\frac{P(i &gt; j)}{1 - P(i &gt; j)}\right) =
@@ -136,9 +136,17 @@ winning.</p>
 </h2>
 <p>To demonstrate how to specify and fit a Bradley-Terry model in
 <code>lmerMultiMember</code>, in this vignette we will rank National
-Football League teams by their performance in the 2021 season, even for
-teams who did not play a single game against each other during that
-season.</p>
+Football League teams by their performance in the 2021 season. Of course
+we know who “won” the season, because the Los Angeles Rams won the Super
+Bowl at the end of the playoffs. However, with a Bradley-Terry model, we
+can predict win probabilities even for teams who did not play a single
+game against each other during the season. For example, I might be
+wondering how my local team, the Green Bay Packers, would have fared
+against my spouse’s home team, the Los Angeles Chargers (formerly of San
+Diego), even though these teams are in different conferences and did not
+play against each other in 2021 season. As we’ll demonstrate in this
+vignette, the coefficients from the Bradley-Terry model can give you a
+predicted outcome for this hypothetical game.</p>
 <p>NFL scores for the 2021 season are included with
 <code>lmerMultiMember</code> as a dataset, so all we need to do to load
 the data is load the package itself. Then, we can take a quick look at
@@ -6846,7 +6854,7 @@ League-worst 3-14 win/loss record.</p>
 </h2>
 <p>So far, so good; the model correctly predicted the League’s best and
 worst teams in the 2021 season. So what about our hypothetical matchup,
-the San Diego Chargers playing the Green Bay Packers?</p>
+the LA Chargers playing the Green Bay Packers?</p>
 <p>It’s easiest to understand how to make this prediction if we compute
 it by hand. We start by looking up the random intercepts for the Packers
 (GB) and Chargers (LAC).</p>
