@@ -88,7 +88,7 @@ With the model fit, we can start interpreting the coefficients. The intercept of
 ```{r plot_intercepts, message = FALSE, dpi = 300}
 
 # plot random effects
-plot_model(m, 're', sort.est = TRUE, grid = FALSE,
+plot_model(m, type = 're', sort.est = TRUE, grid = FALSE,
            line.size = 1.0, dot.size = 3.0) + 
   coord_cartesian() +
   theme_bw() +

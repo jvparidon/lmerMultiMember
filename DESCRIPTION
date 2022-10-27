@@ -1,6 +1,6 @@
 Package: lmerMultiMember
 Title: Multiple membership random effects
-Version: 0.10.1
+Version: 0.11.0
 Authors@R: c(
   person("JP", "van Paridon", email = "jvparidon@gmail.com",
          role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5384-8772")),
@@ -25,6 +25,7 @@ Suggests:
     dplyr,
     kableExtra,
     sjPlot,
+    glmmTMB,
     lmerTest,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
