@@ -1,0 +1,29 @@
+---
+title: "Introduction to lmerMultiMember"
+output: rmarkdown::html_vignette
+author: "Jeroen van Paridon"
+date: "2022-10-27"
+vignette: >
+  %\VignetteIndexEntry{Introduction to lmerMultiMember}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: inline
+---
+
+### Introduction to multiple membership models
+
+This vignette is a stub that will soon be expanded into a full example analysis.  
+In the meantime, please take a look at [this example analysis of a toy dataset](group_membership.html).
+
+```{r load_package, message = FALSE}
+
+# load packages
+library(lmerMultiMember)  # for dataset and modeling
+library(kableExtra)  # for displaying tabular data
+library(dplyr)  # for data manipulation
+library(sjPlot)  # for plotting model coefficients
+library(ggplot2)  # for general plotting stuff
+
+```
+
