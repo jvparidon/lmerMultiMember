@@ -6750,6 +6750,7 @@ visiting
 </tbody>
 </table>
 </div>
+<hr>
 </div>
 <div class="section level3">
 <h3 id="generating-a-bradley-terry-indicator-matrix-and-fitting-a-model">Generating a Bradley-Terry indicator matrix and fitting a model<a class="anchor" aria-label="anchor" href="#generating-a-bradley-terry-indicator-matrix-and-fitting-a-model"></a>
@@ -6818,8 +6819,8 @@ The strength of individual teams is captured in the random
 intercepts.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot random effects</span></span>
-<span><span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/plot_model.html" class="external-link">plot_model</a></span><span class="op">(</span><span class="va">m</span>, type <span class="op">=</span> <span class="st">'re'</span>, sort.est <span class="op">=</span> <span class="cn">TRUE</span>, grid <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>           line.size <span class="op">=</span> <span class="fl">1.0</span>, dot.size <span class="op">=</span> <span class="fl">3.0</span><span class="op">)</span> <span class="op">+</span> </span>
+<span><span class="fu"><a href="https://strengejacke.github.io/sjPlot/reference/plot_model.html" class="external-link">plot_model</a></span><span class="op">(</span><span class="va">m</span>, type <span class="op">=</span> <span class="st">"re"</span>, sort.est <span class="op">=</span> <span class="cn">TRUE</span>, grid <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>           line.size <span class="op">=</span> <span class="fl">1.0</span>, dot.size <span class="op">=</span> <span class="fl">3.0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html" class="external-link">coord_cartesian</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Odds ratio of team winning against League-average team"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -6829,7 +6830,7 @@ intercepts.</p>
 <span>        plot.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span>,</span>
 <span>        rect <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_rect</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="st">"transparent"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>n.breaks <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">1.0</span>, color <span class="op">=</span> <span class="st">'coral2'</span>, size <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">1.0</span>, color <span class="op">=</span> <span class="st">"coral2"</span>, size <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"coral3"</span>, <span class="st">"coral1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="bradleyterry_models_files/figure-html/plot_intercepts-1.png" width="2187.5"></p>
 <p>While the model predicts on the scale of logits (log-odds),
@@ -6858,7 +6859,7 @@ it by hand. We start by looking up the random intercepts for the Packers
 (GB) and Chargers (LAC).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract random intercepts for Green Bay and the LA Chargers</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/nlme/man/random.effects.html" class="external-link">ranef</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span><span class="op">$</span><span class="va">indicators</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GB"</span>, <span class="st">"LAC"</span><span class="op">)</span>, , drop<span class="op">=</span><span class="cn">FALSE</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/nlme/man/random.effects.html" class="external-link">ranef</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span><span class="op">$</span><span class="va">indicators</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GB"</span>, <span class="st">"LAC"</span><span class="op">)</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##     (Intercept)</span></span>
 <span><span class="co">## GB         0.50</span></span>
 <span><span class="co">## LAC        0.07</span></span></code></pre>
