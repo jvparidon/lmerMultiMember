@@ -15,7 +15,8 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_Pro-0.4.2/font.css" rel="stylesheet">
+<!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Bradley-Terry models in lmerMultiMember">
 <meta property="og:description" content="lmerMultiMember">
@@ -53,6 +54,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/bradleyterry_models.html">Bradley-Terry models in lmerMultiMember</a>
     <a class="dropdown-item" href="../articles/group_membership.html">Group membership models using lmerMultiMember</a>
+    <a class="dropdown-item" href="../articles/lmermultimember_intro.html">Introduction to lmerMultiMember</a>
   </div>
 </li>
       </ul>
@@ -91,9 +93,9 @@ Paridon</h4>
 
     
     
-<div class="section level2">
-<h2 id="off-label-usage-of-lmermultimember">Off-label usage of lmerMultiMember<a class="anchor" aria-label="anchor" href="#off-label-usage-of-lmermultimember"></a>
-</h2>
+<div class="section level3">
+<h3 id="off-label-usage-of-lmermultimember">Off-label usage of lmerMultiMember<a class="anchor" aria-label="anchor" href="#off-label-usage-of-lmermultimember"></a>
+</h3>
 <p>The ability to pass arbitrary random effects matrices to
 <code>lme4</code> makes <code>lmerMultiMember</code> useful for more
 than just vanilla multiple membership models. Any model that can be
@@ -131,9 +133,9 @@ negative indicators). If this function is used to generate the indicator
 matrix, we will be modeling the probability of the home team
 winning.</p>
 </div>
-<div class="section level2">
-<h2 id="predicting-nfl-team-rankings-for-the-2021-season">Predicting NFL team rankings for the 2021 season<a class="anchor" aria-label="anchor" href="#predicting-nfl-team-rankings-for-the-2021-season"></a>
-</h2>
+<div class="section level3">
+<h3 id="predicting-nfl-team-rankings-for-the-2021-season">Predicting NFL team rankings for the 2021 season<a class="anchor" aria-label="anchor" href="#predicting-nfl-team-rankings-for-the-2021-season"></a>
+</h3>
 <p>To demonstrate how to specify and fit a Bradley-Terry model in
 <code>lmerMultiMember</code>, in this vignette we will rank National
 Football League teams by their performance in the 2021 season. Of course
@@ -6749,9 +6751,9 @@ visiting
 </table>
 </div>
 </div>
-<div class="section level2">
-<h2 id="generating-a-bradley-terry-indicator-matrix-and-fitting-a-model">Generating a Bradley-Terry indicator matrix and fitting a model<a class="anchor" aria-label="anchor" href="#generating-a-bradley-terry-indicator-matrix-and-fitting-a-model"></a>
-</h2>
+<div class="section level3">
+<h3 id="generating-a-bradley-terry-indicator-matrix-and-fitting-a-model">Generating a Bradley-Terry indicator matrix and fitting a model<a class="anchor" aria-label="anchor" href="#generating-a-bradley-terry-indicator-matrix-and-fitting-a-model"></a>
+</h3>
 <p>From this dataset we can generate a Bradley-Terry indicator matrix
 using <code><a href="../reference/bradleyterry_from_vectors.html">lmerMultiMember::bradleyterry_from_vectors()</a></code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -6761,8 +6763,8 @@ using <code><a href="../reference/bradleyterry_from_vectors.html">lmerMultiMembe
 <span></span>
 <span><span class="co"># check dimensions of indicator matrix (should be teams x games)</span></span>
 <span><span class="co"># i.e. 32 x 285</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rows/teams:"</span>, <span class="st">"columns/games:"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">W</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## rows/teams: 32 columns/games: 285</span></span></code></pre>
+<span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rows/teams:"</span>, <span class="st">", columns/games:"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">W</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## rows/teams: 32 , columns/games: 285</span></span></code></pre>
 <p>With the indicator matrix generated, all we need to do is specify a
 logistic <code><a href="../reference/glmer.html">glmer()</a></code> model to predict wins by the home team,
 and insert our indicator model using a dummy variable.</p>
@@ -6806,9 +6808,9 @@ and insert our indicator model using a dummy variable.</p>
 <span><span class="co">##            Min. per obs. Mean per obs. Max. per obs.</span></span>
 <span><span class="co">## indicators 0             0             0</span></span></code></pre>
 </div>
-<div class="section level2">
-<h2 id="sanity-check-on-random-intercepts-team-strength">Sanity check on random intercepts (team strength)<a class="anchor" aria-label="anchor" href="#sanity-check-on-random-intercepts-team-strength"></a>
-</h2>
+<div class="section level3">
+<h3 id="sanity-check-on-random-intercepts-team-strength">Sanity check on random intercepts (team strength)<a class="anchor" aria-label="anchor" href="#sanity-check-on-random-intercepts-team-strength"></a>
+</h3>
 <p>With the model fit, we can start interpreting the coefficients. The
 intercept of the model represents the home field advantage (i.e. the
 probability of a home team winning, regardless of that team’s strength).
@@ -6829,10 +6831,6 @@ intercepts.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>n.breaks <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">1.0</span>, color <span class="op">=</span> <span class="st">'coral2'</span>, size <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"coral3"</span>, <span class="st">"coral1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in checkMatrixPackageVersion(): Package version inconsistency detected.</span></span>
-<span><span class="co">## TMB was built with Matrix version 1.5.1</span></span>
-<span><span class="co">## Current Matrix version is 1.4.1</span></span>
-<span><span class="co">## Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package</span></span></code></pre>
 <p><img src="bradleyterry_models_files/figure-html/plot_intercepts-1.png" width="2187.5"></p>
 <p>While the model predicts on the scale of logits (log-odds),
 <code>sjPlot</code> automatically transforms the coefficients to odds
@@ -6849,16 +6847,16 @@ has an odds ratio of about .5, meaning their odds of beating the
 hypothetical League average team are 1:2, which is consistent with their
 League-worst 3-14 win/loss record.</p>
 </div>
-<div class="section level2">
-<h2 id="predicting-the-winner-of-an-unplayed-game">Predicting the winner of an unplayed game<a class="anchor" aria-label="anchor" href="#predicting-the-winner-of-an-unplayed-game"></a>
-</h2>
+<div class="section level3">
+<h3 id="predicting-the-winner-of-an-unplayed-game">Predicting the winner of an unplayed game<a class="anchor" aria-label="anchor" href="#predicting-the-winner-of-an-unplayed-game"></a>
+</h3>
 <p>So far, so good; the model correctly predicted the League’s best and
 worst teams in the 2021 season. So what about our hypothetical matchup,
 the LA Chargers playing the Green Bay Packers?</p>
 <p>It’s easiest to understand how to make this prediction if we compute
 it by hand. We start by looking up the random intercepts for the Packers
 (GB) and Chargers (LAC).</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract random intercepts for Green Bay and the LA Chargers</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/nlme/man/random.effects.html" class="external-link">ranef</a></span><span class="op">(</span><span class="va">m</span><span class="op">)</span><span class="op">$</span><span class="va">indicators</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"GB"</span>, <span class="st">"LAC"</span><span class="op">)</span>, , drop<span class="op">=</span><span class="cn">FALSE</span><span class="op">]</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##     (Intercept)</span></span>

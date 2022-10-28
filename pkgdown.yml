@@ -4,7 +4,8 @@ pkgdown_sha: ~
 articles:
   bradleyterry_models: bradleyterry_models.html
   group_membership: group_membership.html
-last_built: 2022-10-27T09:16Z
+  lmermultimember_intro: lmermultimember_intro.html
+last_built: 2022-10-28T04:46Z
 urls:
   reference: https://jvparidon.github.io/lmerMultiMember/reference
   article: https://jvparidon.github.io/lmerMultiMember/articles
