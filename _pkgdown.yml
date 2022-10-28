@@ -13,6 +13,8 @@ template:
   bootswatch: simplex
   bslib:
     pkgdown-nav-height: 100px
+    base_font: {google: "Source Sans Pro"}
+    heading_font: {google: "Source Sans Pro"}
     primary: "#ee6a50"
   opengraph:
     twitter:

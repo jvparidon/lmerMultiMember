@@ -11,7 +11,7 @@ editor_options:
   chunk_output_type: inline
 ---
 
-## Off-label usage of lmerMultiMember
+### Off-label usage of lmerMultiMember
 
 The ability to pass arbitrary random effects matrices to `lme4` makes `lmerMultiMember` useful for more than just vanilla multiple membership models. Any model that can be specified as a combination of "conventional" fixed effects and an arbitrary random effects matrix can be specified using `lmerMultiMember`. (Although for certain model specifications the underlying `lme4` model fitting may not converge.)
 
@@ -23,7 +23,7 @@ If you're not that comfortable with the math, don't worry! This formulation of t
 
 `lmerMultiMember::bradleyterry_from_vectors()` is a helper function that creates the indicator matrix from a vector of home teams (i.e. individuals that will be assigned positive indicators) and a vector of visiting teams (i.e. individuals that will be assigned negative indicators). If this function is used to generate the indicator matrix, we will be modeling the probability of the home team winning.
 
-## Predicting NFL team rankings for the 2021 season
+### Predicting NFL team rankings for the 2021 season
 
 To demonstrate how to specify and fit a Bradley-Terry model in `lmerMultiMember`, in this vignette we will rank National Football League teams by their performance in the 2021 season. Of course we know who "won" the season, because the Los Angeles Rams won the Super Bowl at the end of the playoffs. However, with a Bradley-Terry model, we can predict win probabilities even for teams who did not play a single game against each other during the season. For example, I might be wondering how my local team, the Green Bay Packers, would have fared against my spouse's home team, the Los Angeles Chargers (formerly of San Diego), even though these teams are in different conferences and did not play against each other in 2021 season. As we'll demonstrate in this vignette, the coefficients from the Bradley-Terry model can give you a predicted outcome for this hypothetical game.
 
@@ -46,7 +46,7 @@ nfl_scores_2021 |>
 
 ```
 
-## Generating a Bradley-Terry indicator matrix and fitting a model
+### Generating a Bradley-Terry indicator matrix and fitting a model
 
 From this dataset we can generate a Bradley-Terry indicator matrix using `lmerMultiMember::bradleyterry_from_vectors()`.
 
@@ -58,7 +58,7 @@ W <- bradleyterry_from_vectors(nfl_scores_2021$home_team,
 
 # check dimensions of indicator matrix (should be teams x games)
 # i.e. 32 x 285
-paste(c("rows/teams:", "columns/games:"), dim(W)) |> cat()
+paste(c("rows/teams:", ", columns/games:"), dim(W)) |> cat()
 
 ```
 
@@ -81,11 +81,11 @@ summary(m)
 
 ```
 
-## Sanity check on random intercepts (team strength)
+### Sanity check on random intercepts (team strength)
 
 With the model fit, we can start interpreting the coefficients. The intercept of the model represents the home field advantage (i.e. the probability of a home team winning, regardless of that team's strength). The strength of individual teams is captured in the random intercepts.
 
-```{r plot_intercepts, message = FALSE, dpi = 300}
+```{r plot_intercepts, message = FALSE, warning = FALSE, dpi = 300}
 
 # plot random effects
 plot_model(m, type = 're', sort.est = TRUE, grid = FALSE,
@@ -110,7 +110,7 @@ The Los Angeles Rams, the team with the highest random intercept, has an odds ra
 
 The Jacksonville Jaguars, the team with the lowest random intercept, has an odds ratio of about .5, meaning their odds of beating the hypothetical League average team are 1:2, which is consistent with their League-worst 3-14 win/loss record.
 
-## Predicting the winner of an unplayed game
+### Predicting the winner of an unplayed game
 
 So far, so good; the model correctly predicted the League's best and worst teams in the 2021 season. So what about our hypothetical matchup, the LA Chargers playing the Green Bay Packers?
 
