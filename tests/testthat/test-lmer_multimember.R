@@ -282,7 +282,7 @@ test_that("multimembership dummy var in a nested grouping causes an error", {
     other = rep(c("x", "y"), 30)
   )
   Wm <- weights_from_vector(df$memberships)
-  expect_error(lmer(y ~ x + (1 + x | members/other), data = df,
+  expect_error(lmer(y ~ x + (1 + x | members / other), data = df,
                     memberships = list(members = Wm)))
 })
 

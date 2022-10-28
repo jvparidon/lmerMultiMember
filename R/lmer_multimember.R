@@ -84,7 +84,7 @@ lmer <- function(formula,
 
     # check if any of the multimembership dummies are used in nested groupings
     RE_parts <- unlist(strsplit(RE_vars[i], ":"))
-    if ((length(RE_parts) > 1) &
+    if ((length(RE_parts) > 1) &&
         (length(intersect(RE_parts, multi_RE_names)) > 0)) {
       # throw error
       stop(paste0("lmerMultiMember does not support the use of multimembership",

@@ -109,8 +109,8 @@ bradleyterry_from_vectors <- function(winners, losers) {
                         dimnames = list(Wab_rownames, as.character(1:nobs)))
 
   # fill sparse matrix with Wa indicators and negative Wb indicators
-  Wab[rownames(Wa),] <- Wa
-  Wab[rownames(Wb),] <- Wab[rownames(Wb),] - Wb
+  Wab[rownames(Wa), ] <- Wa
+  Wab[rownames(Wb), ] <- Wab[rownames(Wb), ] - Wb
 
   # return sparse Bradley-Terry indicator matrix
   return(Wab)

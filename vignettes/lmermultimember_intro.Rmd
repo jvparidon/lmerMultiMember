@@ -26,4 +26,3 @@ library(sjPlot)  # for plotting model coefficients
 library(ggplot2)  # for general plotting stuff
 
 ```
-
