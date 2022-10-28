@@ -46,6 +46,8 @@ nfl_scores_2021 |>
 
 ```
 
+---
+
 ### Generating a Bradley-Terry indicator matrix and fitting a model
 
 From this dataset we can generate a Bradley-Terry indicator matrix using `lmerMultiMember::bradleyterry_from_vectors()`.
@@ -88,8 +90,8 @@ With the model fit, we can start interpreting the coefficients. The intercept of
 ```{r plot_intercepts, message = FALSE, warning = FALSE, dpi = 300}
 
 # plot random effects
-plot_model(m, type = 're', sort.est = TRUE, grid = FALSE,
-           line.size = 1.0, dot.size = 3.0) + 
+plot_model(m, type = "re", sort.est = TRUE, grid = FALSE,
+           line.size = 1.0, dot.size = 3.0) +
   coord_cartesian() +
   theme_bw() +
   ggtitle("Odds ratio of team winning against League-average team") +
@@ -99,7 +101,7 @@ plot_model(m, type = 're', sort.est = TRUE, grid = FALSE,
         plot.title = element_text(size = 14),
         rect = element_rect(fill = "transparent")) +
   scale_y_continuous(n.breaks = 8) +
-  geom_hline(yintercept = 1.0, color = 'coral2', size = 1.0) +
+  geom_hline(yintercept = 1.0, color = "coral2", size = 1.0) +
   scale_color_manual(values = c("coral3", "coral1"))
 
 ```
@@ -119,7 +121,7 @@ It's easiest to understand how to make this prediction if we compute it by hand.
 ```{r extract_intercepts}
 
 # extract random intercepts for Green Bay and the LA Chargers
-ranef(m)$indicators[c("GB", "LAC"), , drop=FALSE] |> round(2)
+ranef(m)$indicators[c("GB", "LAC"), , drop = FALSE] |> round(2)
 
 ```
 
