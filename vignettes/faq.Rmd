@@ -1,0 +1,40 @@
+---
+title: "Frequently Asked Questions"
+output: rmarkdown::html_vignette
+author: "Jeroen van Paridon"
+date: "2022-11-07"
+vignette: >
+  %\VignetteIndexEntry{Frequently Asked Questions}
+  \usepackage[utf8]{inputenc}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: inline
+---
+
+### What is the difference between crossed random effects and a multiple membership model?
+
+Multiple membership is not the same as crossed random effects: In a crossed random effects model, each observation can be associated with a **single** level of multiple, independent random effects (i.e. the random effects do not have to be nested). In a multiple membership model, each observation can be associated with **multiple** levels of a single random effect.
+
+`lme4` supports fully crossed random effects (whereas e.g. `nlme` does not), but not multiple membership models. `lmerMultiMember` adds support for multiple membership models to `lme4`, while still supporting fully crossed random effects at the same time.
+
+
+### I tried using another package to plot/summarize/etc. an `lmerMultiMember` model, but it didn't work?
+
+Since `lmerMultiMember` model objects behave much like `lme4` model objects (i.e. they "inherit" the model class from `lme4`) you can generally use them as if they are the same. However, some packages (e.g. `sjPlot`) are very strict about recognizing models and will sometimes not accept `lmerMultiMember` models.
+
+There is an easy workaround that usually works (no guarantees though!) which is to force the `lmerMultiMember` to have the same class as an `lme4` or `lmerTest` model:
+
+```{r eval = FALSE}
+class(m_lmer) <- "lmerMod"  # for lmer models
+class(m_glmer) <- "glmerMod"  # for glmer models
+class(m_lmer) <- "lmerModLmerTest"  # if you have lmerTest installed
+```
+
+Keep in mind that this change is superficial; it is just a trick and some things may still not work.
+
+
+### Why is this functionality not part of `lme4` already?
+
+`lme4` did not have this functionality originally because it is not the most common use-case and it turns out to be kind of hard to implement in an elegant way. It is probably unhelpful for most `lme4` users if the syntax has to be altered to support 
+
+Another reason not to try to subsume `lmerMultiMember` into `lme4` is that the latter is kind of in maintenance mode, with most development focusing on compatibility and bugfixes, while `lmerMultiMember` is still a little experimental and might still undergo major changes.

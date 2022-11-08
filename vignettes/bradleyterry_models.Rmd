@@ -100,7 +100,7 @@ plot_model(m, type = "re", sort.est = TRUE, grid = FALSE,
         axis.text.y = element_text(size = 12),
         plot.title = element_text(size = 14),
         rect = element_rect(fill = "transparent")) +
-  scale_y_continuous(n.breaks = 8) +
+  scale_y_continuous() +
   geom_hline(yintercept = 1.0, color = "coral2", size = 1.0) +
   scale_color_manual(values = c("coral3", "coral1"))
 
@@ -130,3 +130,94 @@ By exponentiating the difference between these intercepts, we can compute the od
 $$OR(GB > LAC) = \exp(\beta_{GB} - \beta_{LAC}) = \exp(.50 - .07) = 1.54$$
 
 The odds of the 2021 Packers winning against the 2021 Chargers, disregarding any potential home field advantage, are 1.54:1.
+
+### Replicating the Bradley-Terry model in Stan
+
+To double-check the predictions we got from `lmerMultiMember`, we can fit the same model structure in `Stan`, the probabilistic programming language for Bayesian models. Replicating this model in a Bayesian framework is convenient, because we can reproduce the mild shrinkage that `lme4` applies to its random effects. (We can approximate the implicit uniform prior on home field advantage in the `lmerMultiMember` by putting a very wide prior on that coefficient in the Stan model.)
+
+We first specify the Stan model's structure:
+
+```{stan, output.var = "bt_model_stan", eval = FALSE}
+data {
+  int<lower=1> N;  // number of games
+  int<lower=1> M;  // number of teams
+  matrix[N, M] W;  // indicator matrix
+  int<lower=0> home_win[N];  // outcome
+}
+parameters {
+  real home_adv;  // home field advantage
+  vector[M] team_logOR;  // team strength (log odds ratio)
+  real<lower=0> sigma;  // sd of team strengths
+}
+transformed parameters {
+  vector[M] team_OR;  // odds ratio per team
+  team_OR = exp(team_logOR);  // exponentiate team log OR
+}
+model {
+  home_adv ~ normal(0, 100);  // wide normal prior on home field advantage
+  team_logOR ~ normal(0, sigma);  // normal priors on team strength
+  home_win ~ bernoulli_logit(home_adv + W * team_logOR);  // likelihood
+}
+
+```
+
+Then, we pass data to the model and sample from it. Conveniently, we can use the helper function `lmerMultiMember::bradleyterry_from_vectors()` to generate an indicator matrix for Stan, as well:
+
+```{r stan_model_fit, results = "hide", eval = FALSE}
+
+# use multiple cores for sampling
+options(mc.cores = parallel::detectCores())
+
+# prepare data for passing to Stan sampler
+stan_data <- list(
+  home_win = nfl_scores_2021$home_win,
+  N = nrow(nfl_scores_2021),
+  M = length(unique(nfl_scores_2021$home_team)),
+  W = t(as.matrix(bradleyterry_from_vectors(nfl_scores_2021$home_team,
+                                            nfl_scores_2021$visiting_team)))
+)
+
+# sample from Stan model
+m_stan <- rstan::sampling(bt_model_stan, data = stan_data, warmup = 2000, iter = 8000)
+
+# store fitted Stan model
+save(m_stan, file="bt_model_stan_fit.Rds")
+
+```
+
+Finally, we can plot the HDIs from the posterior samples in the same manner that we plotted the `lmerMultiMember` effects:
+
+```{r stan_model_plot, dpi = 300}
+
+# load fitted Stan model (this is to save resources when building vignettes)
+load("bt_model_stan_fit.Rds")
+
+# create tidy data frame from posterior samples
+summ <- broom.mixed::tidy(m_stan, pars = "team_OR", conf.int = TRUE)
+
+# sort teams from low to high and color-code
+summ$term <- sort(unique(nfl_scores_2021$home_team))
+summ$color <- cut(summ$estimate, breaks = c(0, 1, Inf),
+                  labels = c("negative", "positive"))
+
+# plot 95% HDIs
+ggplot(summ[order(summ$estimate),],
+       aes(y = estimate,x = factor(term, level = term), color = color)) +
+  geom_point(size = 3) +
+  geom_linerange(aes(ymin = conf.low, ymax = conf.high,
+                     x = factor(term, level = term), color = color), size = 1) +
+  theme_bw() +
+  ggtitle("Odds ratio of team winning against League-average team") +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 12, angle = 60, hjust = 1.0),
+        axis.text.y = element_text(size = 12),
+        plot.title = element_text(size = 14),
+        legend.position = "none",
+        rect = element_rect(fill = "transparent")) +
+  xlab("") + ylab("") +
+  geom_hline(yintercept = 1.0, color = "coral2", size = 1.0) +
+  scale_color_manual(values = c("coral3", "coral1"))
+
+```
+
+the `Stan` and `lmerMultiMember` estimates of team strength seem to match, although the uncertainty intervals are a little bit wider here. (This could potentially be fixed by setting stricter priors.)
