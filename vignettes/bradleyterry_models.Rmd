@@ -166,7 +166,7 @@ Then, we pass data to the model and sample from it:
 
 ```{r stan_model_fit, results = "hide"}
 
-options(mc.cores = parallel::detectCores())
+#options(mc.cores = parallel::detectCores())
 
 stan_data <- list(
   home_win = nfl_scores_2021$home_win,
