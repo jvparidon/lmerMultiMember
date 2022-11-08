@@ -166,7 +166,6 @@ Then, we pass data to the model and sample from it:
 
 ```{r stan_model_fit, results = "hide"}
 
-rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
 stan_data <- list(
