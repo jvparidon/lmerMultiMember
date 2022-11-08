@@ -139,7 +139,7 @@ To double-check the predictions we got from `lmerMultiMember`, we can fit the sa
 
 We first specify the Stan model's structure:
 
-```{stan, output.var = "bt_model_stan_code", eval = FALSE}
+```{stan, output.var = "bt_model_stan", eval = FALSE}
 data {
   int<lower=1> N;  // number of games
   int<lower=1> M;  // number of teams
@@ -165,10 +165,10 @@ model {
 
 Then, we pass data to the model and sample from it. Conveniently, we can use the helper function `lmerMultiMember::bradleyterry_from_vectors()` to generate an indicator matrix for Stan, as well:
 
-```{r stan_model_fit, results = "hide"}
+```{r stan_model_fit, results = "hide", eval = FALSE}
 
-# load a precompiled Stan model, to save time and resources
-load('bt_model_stan.RData')
+# use multiple cores for sampling
+options(mc.cores = parallel::detectCores())
 
 # prepare data for passing to Stan sampler
 stan_data <- list(
@@ -179,9 +179,11 @@ stan_data <- list(
                                             nfl_scores_2021$visiting_team)))
 )
 
-# sample from Stan model, with low number of samples to save time and resources
-m_stan <- sampling(bt_model_stan, data = stan_data,
-                   warmup = 1000, iter = 2000, chains = 2)
+# sample from Stan model
+m_stan <- sampling(bt_model_stan, data = stan_data, warmup = 2000, iter = 8000)
+
+# store fitted Stan model
+save(m_stan, file="bt_model_stan_fit.Rds")
 
 ```
 
@@ -189,12 +191,18 @@ Finally, we can plot the HDIs from the posterior samples in the same manner that
 
 ```{r stan_model_plot, dpi = 300}
 
+# load fitted Stan model (this is to save resources when building vignettes)
+load("bt_model_stan_fit.Rds")
+
+# create tidy data frame from posterior samples
 summ <- tidy(m_stan, pars = "team_OR", conf.int = TRUE)
 
+# sort teams from low to high and color-code
 summ$term <- sort(unique(nfl_scores_2021$home_team))
 summ$color <- cut(summ$estimate, breaks = c(0, 1, Inf),
                   labels = c("negative", "positive"))
 
+# plot 95% HDIs
 ggplot(summ[order(summ$estimate),]) +
   geom_pointrange(aes(y = estimate, ymin = conf.low, ymax = conf.high,
                       x = factor(term, level = term), color = color),
