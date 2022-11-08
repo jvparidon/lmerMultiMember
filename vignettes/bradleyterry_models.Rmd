@@ -139,7 +139,7 @@ To double-check the predictions we got from `lmerMultiMember`, we can fit the sa
 
 We first specify the Stan model's structure:
 
-```{stan output.var="stan_model"}
+```{stan, output.var = "bt_model_stan_code", eval = FALSE}
 data {
   int<lower=1> N;  // number of games
   int<lower=1> M;  // number of teams
@@ -160,12 +160,17 @@ model {
   team_logOR ~ normal(0, sigma);  // normal priors on team strength
   home_win ~ bernoulli_logit(home_adv + W * team_logOR);  // likelihood
 }
+
 ```
 
 Then, we pass data to the model and sample from it. Conveniently, we can use the helper function `lmerMultiMember::bradleyterry_from_vectors()` to generate an indicator matrix for Stan, as well:
 
 ```{r stan_model_fit, results = "hide"}
 
+# load a precompiled Stan model, to save time and resources
+load('bt_model_stan.RData')
+
+# prepare data for passing to Stan sampler
 stan_data <- list(
   home_win = nfl_scores_2021$home_win,
   N = nrow(nfl_scores_2021),
@@ -174,7 +179,9 @@ stan_data <- list(
                                             nfl_scores_2021$visiting_team)))
 )
 
-m_stan <- sampling(stan_model, data = stan_data, warmup = 5000, iter = 10000)
+# sample from Stan model, with low number of samples to save time and resources
+m_stan <- sampling(bt_model_stan, data = stan_data,
+                   warmup = 1000, iter = 2000, chains = 2)
 
 ```
 
