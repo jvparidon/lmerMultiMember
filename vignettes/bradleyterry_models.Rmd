@@ -37,8 +37,6 @@ library(kableExtra)  # for displaying tabular data
 library(dplyr)  # for data manipulation
 library(sjPlot)  # for plotting model coefficients
 library(ggplot2)  # for general plotting stuff
-library(rstan)  # for fitting the Bradley-Terry model in Stan
-library(broom.mixed)  # for tidying up fitted stan model
 
 # display the NFL 2021 season data
 nfl_scores_2021 |>
@@ -180,7 +178,7 @@ stan_data <- list(
 )
 
 # sample from Stan model
-m_stan <- sampling(bt_model_stan, data = stan_data, warmup = 2000, iter = 8000)
+m_stan <- rstan::sampling(bt_model_stan, data = stan_data, warmup = 2000, iter = 8000)
 
 # store fitted Stan model
 save(m_stan, file="bt_model_stan_fit.Rds")
@@ -195,7 +193,7 @@ Finally, we can plot the HDIs from the posterior samples in the same manner that
 load("bt_model_stan_fit.Rds")
 
 # create tidy data frame from posterior samples
-summ <- tidy(m_stan, pars = "team_OR", conf.int = TRUE)
+summ <- broom.mixed::tidy(m_stan, pars = "team_OR", conf.int = TRUE)
 
 # sort teams from low to high and color-code
 summ$term <- sort(unique(nfl_scores_2021$home_team))
@@ -203,10 +201,11 @@ summ$color <- cut(summ$estimate, breaks = c(0, 1, Inf),
                   labels = c("negative", "positive"))
 
 # plot 95% HDIs
-ggplot(summ[order(summ$estimate),]) +
-  geom_pointrange(aes(y = estimate, ymin = conf.low, ymax = conf.high,
-                      x = factor(term, level = term), color = color),
-                  size = 1, fatten = 2) +
+ggplot(summ[order(summ$estimate),],
+       aes(y = estimate,x = factor(term, level = term), color = color)) +
+  geom_point(size = 3) +
+  geom_linerange(aes(ymin = conf.low, ymax = conf.high,
+                     x = factor(term, level = term), color = color), size = 1) +
   theme_bw() +
   ggtitle("Odds ratio of team winning against League-average team") +
   theme(axis.ticks = element_blank(),
