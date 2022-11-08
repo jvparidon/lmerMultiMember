@@ -24,6 +24,7 @@ Suggests:
     ggplot2,
     dplyr,
     kableExtra,
+    rstan,
     sjPlot,
     glmmTMB,
     lmerTest,

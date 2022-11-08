@@ -158,7 +158,7 @@ transformed parameters {
 model {
   home_adv ~ normal(0, 100);  // wide normal prior on home field advantage
   team_logOR ~ normal(0, sigma);  // normal priors on team strength
-  home_win ~ bernoulli(inv_logit(home_adv + W * team_logOR));  // likelihood
+  home_win ~ bernoulli_logit(home_adv + W * team_logOR);  // likelihood
 }
 ```
 
@@ -177,9 +177,7 @@ stan_data <- list(
                                             nfl_scores_2021$visiting_team)))
 )
 
-m_stan <- rstan::sampling(stan_model,
-                          data = stan_data,
-                          warmup = 5000, iter = 10000)
+m_stan <- sampling(stan_model, data = stan_data, warmup = 5000, iter = 10000)
 
 ```
 
@@ -187,7 +185,7 @@ Finally, we can plot the HDIs from the posterior samples in the same manner that
 
 ```{r stan_model_plot, dpi = 300}
 
-summ <- broom.mixed::tidy(m_stan, pars = "team_OR", conf.int = TRUE)
+summ <- tidy(m_stan, pars = "team_OR", conf.int = TRUE)
 
 summ$term <- sort(unique(nfl_scores_2021$home_team))
 summ$color <- cut(summ$estimate, breaks = c(0, 1, Inf),
