@@ -133,11 +133,11 @@ The odds of the 2021 Packers winning against the 2021 Chargers, disregarding any
 
 ### Replicating the Bradley-Terry model in Stan
 
-To double-check the predictions we got from `lmerMultiMember`, we can fit the same model structure in `Stan`, the probabilistic programming language for Bayesian models. Replicating this model in a Bayesian framework is convenient, because we can reproduce the mild shrinkage that `lme4` applies to its random effects. (We can approximate the implicit uniform prior on home field advantage in the `lmerMultiMember` by putting a very wide prior on that coefficient in the Stan model.)
+To double-check the predictions we got from `lmerMultiMember`, we can fit the same model structure in Stan, the probabilistic programming language for Bayesian models. Replicating this model in a Bayesian framework is convenient, because we can reproduce the mild shrinkage that `lme4` applies to its random effects. (We can approximate the implicit uniform prior on home field advantage in the `lmerMultiMember` by putting a very wide prior on that coefficient in the Stan model.)
 
 We first specify the Stan model's structure:
 
-```{stan, output.var = "bt_model_stan", eval = FALSE}
+```{stan, output.var = "model_stan", eval = FALSE}
 data {
   int<lower=1> N;  // number of games
   int<lower=1> M;  // number of teams
@@ -161,9 +161,9 @@ model {
 
 ```
 
-Then, we pass data to the model and sample from it. Conveniently, we can use the helper function `lmerMultiMember::bradleyterry_from_vectors()` to generate an indicator matrix for Stan, as well:
+Then, we pass data to the model and sample from it using `rstan`. Conveniently, we can use the helper function `lmerMultiMember::bradleyterry_from_vectors()` to generate an indicator matrix for Stan, as well:
 
-```{r stan_model_fit, results = "hide", eval = FALSE}
+```{r stan_sampling, results = "hide", eval = FALSE}
 
 # use multiple cores for sampling
 options(mc.cores = parallel::detectCores())
@@ -178,10 +178,14 @@ stan_data <- list(
 )
 
 # sample from Stan model
-m_stan <- rstan::sampling(bt_model_stan, data = stan_data, warmup = 2000, iter = 8000)
+stan_fit <- rstan::sampling(model_stan, data = stan_data,
+                               warmup = 2000, iter = 8000)
+
+# create tidy data frame from posterior samples
+stan_post <- broom.mixed::tidy(stan_fit, pars = "team_OR", conf.int = TRUE)
 
 # store fitted Stan model
-save(m_stan, file="bt_model_stan_fit.Rds")
+save(stan_post, file="bt_model_stan_fit.Rds")
 
 ```
 
@@ -192,17 +196,14 @@ Finally, we can plot the HDIs from the posterior samples in the same manner that
 # load fitted Stan model (this is to save resources when building vignettes)
 load("bt_model_stan_fit.Rds")
 
-# create tidy data frame from posterior samples
-summ <- broom.mixed::tidy(m_stan, pars = "team_OR", conf.int = TRUE)
-
 # sort teams from low to high and color-code
-summ$term <- sort(unique(nfl_scores_2021$home_team))
-summ$color <- cut(summ$estimate, breaks = c(0, 1, Inf),
+stan_post$term <- sort(unique(nfl_scores_2021$home_team))
+stan_post$color <- cut(stan_post$estimate, breaks = c(0, 1, Inf),
                   labels = c("negative", "positive"))
 
 # plot 95% HDIs
-ggplot(summ[order(summ$estimate),],
-       aes(y = estimate,x = factor(term, level = term), color = color)) +
+stan_post[order(stan_post$estimate),] |>
+  ggplot(aes(y = estimate,x = factor(term, level = term), color = color)) +
   geom_point(size = 3) +
   geom_linerange(aes(ymin = conf.low, ymax = conf.high,
                      x = factor(term, level = term), color = color), size = 1) +
@@ -220,4 +221,4 @@ ggplot(summ[order(summ$estimate),],
 
 ```
 
-the `Stan` and `lmerMultiMember` estimates of team strength seem to match, although the uncertainty intervals are a little bit wider here. (This could potentially be fixed by setting stricter priors.)
+the `rstan` and `lmerMultiMember` estimates of team strength seem to match, although the uncertainty intervals are a little bit wider here. (This could potentially be fixed by setting stricter priors.)
