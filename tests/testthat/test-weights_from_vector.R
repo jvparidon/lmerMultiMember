@@ -30,6 +30,13 @@ test_that("bradleyterry_from_vectors() return type is sparse matrix", {
   expect_s4_class(Wab, "sparseMatrix")
 })
 
+test_that("bradleyterry_from_sparse() return type is sparse matrix", {
+  a <- Matrix::fac2sparse(c("k", "k", "l", "m", "m"))
+  b <- Matrix::fac2sparse(c("l", "m", "m", "k", "l"))
+  Wab <- bradleyterry_from_sparse(a, b)
+  expect_s4_class(Wab, "sparseMatrix")
+})
+
 test_that("sparse matrix from weights_from_vector() has correct dimensions", {
   a <- c("k,l,m", "k,m", "k", "l", "l,k")
   Wa <- weights_from_vector(a)
@@ -59,6 +66,13 @@ test_that("sparse matrix from bradleyterry_from_vectors() has correct dims", {
   a <- c("k", "k", "l", "m", "m")
   b <- c("l", "m", "m", "k", "l")
   Wab <- bradleyterry_from_vectors(a, b)
+  expect_equal(dim(Wab), c(3, 5))
+})
+
+test_that("sparse matrix from bradleyterry_from_sparse() has correct dims", {
+  a <- Matrix::fac2sparse(c("k", "k", "l", "m", "m"))
+  b <- Matrix::fac2sparse(c("l", "m", "m", "k", "l"))
+  Wab <- bradleyterry_from_sparse(a, b)
   expect_equal(dim(Wab), c(3, 5))
 })
 
@@ -106,5 +120,18 @@ test_that("returned matrix from bradleyterry_from_vectors() is correct", {
   a <- c("k", "k", "l", "m", "m")
   b <- c("l", "m", "m", "k", "l")
   Wab <- as.matrix(bradleyterry_from_vectors(a, b))
+  expect_equal(Wab, Wreference)
+})
+
+test_that("returned matrix from bradleyterry_from_sparse() is correct", {
+  Wreference <- as.matrix(t(data.frame(
+    k = c(1, 1, 0, -1, 0),
+    l = c(-1, 0, 1, 0, -1),
+    m = c(0, -1, -1, 1, 1),
+    row.names = 1:5
+  )))
+  a <- Matrix::fac2sparse(c("k", "k", "l", "m", "m"))
+  b <- Matrix::fac2sparse(c("l", "m", "m", "k", "l"))
+  Wab <- as.matrix(bradleyterry_from_sparse(a, b))
   expect_equal(Wab, Wreference)
 })

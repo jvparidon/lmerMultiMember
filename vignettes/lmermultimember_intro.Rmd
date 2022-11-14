@@ -13,16 +13,243 @@ editor_options:
 
 ### Introduction to multiple membership models
 
-This vignette is a stub that will soon be expanded into a full example analysis.  
-In the meantime, please take a look at [this example analysis of a toy dataset](group_membership.html).
+This vignette will walk you through an `lmerMultiMember` analysis of a dataset that is included with the package. It contains examples for specifying and fitting an `lmerMultiMember` model and examples for using the package's helper functions, including functions for creating multiple membership indicator matrices, creating Bradley-Terry/adversarial indicator matrices, and creating interaction/nested multiple membership matrices. Basic understanding of the generalized linear mixed-effects model (GLMM) is assumed; if you would like to learn more about GLMMs you can refer to the `lme4` vignettes.
 
-```{r load_package, message = FALSE}
+```{r setup, message = FALSE}
 
 # load packages
 library(lmerMultiMember)  # for dataset and modeling
 library(kableExtra)  # for displaying tabular data
 library(dplyr)  # for data manipulation
-library(sjPlot)  # for plotting model coefficients
 library(ggplot2)  # for general plotting stuff
 
 ```
+
+### Doubles tennis data
+
+In this vignette we'll try to identify the best male doubles tennis player of the 2010s.
+
+This is a tricky question, because when a pair of players plays another pair of players, determining the individual contribution of each player to the outcome is not straightforward. However, we can use a multiple membership model to get a measure of each player's individual contribution to a team's doubles success.
+
+Tennis scores are a somewhat inconvenient outcome to model, because the number of points scored against an opponent is not a good measure of player performance. Men's doubles matches are played in a best-of-three or best-of-five format, meaning that the first team to two or three _sets_ wins. To win a _set_, a team has to win six _games_, and lead by at least two games. To win a _game_, a team has to score four _points_, with at least a two point lead.[^1]
+
+[^1]: This nested system of best-of-N and minimal-advantage rules means that while scoring zero points against an opponent signifies bad performance, scoring a very large number of points does not signify that a team was much better than their opponent; a large number of points scored in a match means that both teams had difficulty gaining the minimal point advantage necessary to win games and sets, a sign that both teams were in fact quite evenly matched. The optimal score, then, occurs when a team is much stronger than their opponent and they only need just enough points to quickly win each game.
+
+Because modeling the score is a somewhat thorny problem, for this tutorial we will instead model match wins and losses, which we can do with a simple binomial GLMM (Generalized Linear Mixed-effects Model).
+
+We have results for ATP men's doubles tennis matches from 2010 to 2019, compiled Jeff Sackmann. This dataset is included with `lmerMultiMember`, so you if you have this package installed you can load it yourself and play around with it.
+
+```{r doubles_data}
+
+# load ATP doubles data from package
+data("atp_doubles", package = "lmerMultiMember")
+
+# display the first 1000 matches in the ATP doubles dataset
+atp_doubles |>
+  head(1000) |>
+  kable() |>
+  kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 16) |>
+  scroll_box(height = "250px")
+
+```
+
+---
+
+
+### Modeling player strength for players on team 1
+
+To figure out which player is strongest, we'll model player effects using multiple membership random intercepts. `lmerMultiMember` provides a helper function that generates an indicator matrix from columns of a dataframe. To illustrate what we mean by that, we'll generate the indicator matrix `Wt` for the players on team 1 in each of the first five matches in our dataset and plot it.  
+
+```{r indicator_matrix}
+
+# generate sparse matrix for small bit of the datset
+Wt <- weights_from_columns(atp_doubles[1:5, c("team1_player1_name",
+                                              "team1_player2_name")])
+
+# display matrix plot of the indicator matrix
+matplot <- plot_membership_matrix(Wt)
+update(matplot, xlab = "Team 1 players", ylab = "Match")
+
+```
+
+As you can see, the indicator matrix has 1s (gray, filled squares) for the players in a match, and 0s (empty space) everywhere else. There are two players in team 1 in each match, so for each row/match in the matrix, you'll find two filled squares.
+
+Next, we generate the indicator matrix `Wp` for the players in team 1 across _all_ matches in our dataset and fit a GLMM to predict match winners from that indicator matrix. We explicitly set the global intercept to 0, because there shouldn't be any systematic advantage for team 1 over team 2 when we model the whole dataset[^1].
+
+[^1]: Which team is team 1 and which is team 2 is randomly assigned and entirely arbitrary in this dataset.
+
+```{r doubles_model}
+
+# generate sparse indicator matrix for whole dataset
+Wp <- weights_from_columns(atp_doubles[, c("team1_player1_name",
+                                           "team1_player2_name")])
+
+# fit GLMM
+m1 <- glmer(team1_win ~ 0 + (1 | team1_player),
+            family = "binomial", memberships = list(team1_player = Wp),
+            data = atp_doubles)
+
+# display model summary
+summary(m1)
+
+```
+
+The model summary tells us that the model fitted is a multiple membership model, and the line at the bottom shows us that the minimum, mean, and maximum number of team 1 players per match was 2, as expected.
+
+To view the strongest players according to this model, we can extract the random intercepts and plot them. These intercepts will be on a log odds ratio scale, but they're relatively easy to interpret for our purposes: The strongest player will have the largest intercept value.
+
+```{r doubles_plot, dpi = 300}
+
+# extract random effects
+m <- broom.mixed::tidy(m1, effects = "ran_vals", conf.int = TRUE) %>%
+  .[.$group == "team1_player", ] %>%
+  .[order(.$estimate), ]
+
+# get top 10
+m <- m[(nrow(m) - 9):nrow(m), ]
+
+# plot top 10
+m[order(m$estimate),] |>
+  ggplot(aes(x = estimate, y = factor(level, level = level))) +
+  geom_point(size = 3, color = "coral1") +
+  geom_linerange(aes(xmin = conf.low, xmax = conf.high), size = 1, color = "coral1") +
+  theme_bw() + xlab("") + ylab("") +
+  ggtitle("Increase in log(odds ratio) of winning attributable to player") +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 12, angle = 60, hjust = 1.0),
+        axis.text.y = element_text(size = 12),
+        plot.title = element_text(size = 14),
+        rect = element_rect(fill = "transparent")) +
+  geom_vline(xintercept = 0, color = "coral2", size = 1.0)
+
+```
+
+A simple sanity check for our model is to see whether any of the players in this top 10 are actually accomplished doubles players. And they are! Bob and Mike Bryan are widely considered to be the best men's doubles team of all time. While by the end of the 2010s they were no longer in their prime, the model puts them in the top 10 of 2010s men's doubles players and that's a good sign that we're capturing player variance correctly.
+
+
+### Modeling player strength for players on both teams
+
+One important drawback of how we've modeled player effects in our model is that we're only considering team 1 players, not team 2. Tennis matches are not played against a random replacement-level opponent, they're played against a real team that can vary in strength. That means that a losing to Bob and Mike Bryan should probably not harm your personal player strength estimate as much as losing against a random other team would, but our modeling approach does not account for this. (Of course another drawback of this approach is that we're essentially ignoring half of the available data about player strength.)
+
+To account for team 2 player strength, we _could_ enter team 2 as another random intercept, but it's preferable to integrate team 2 player strength estimates with our team 1 player strength estimates. Many of the players in our dataset occur as both members of team 1 and members of team 2, so we'll want to make sure we share that information for player strength estimates across our estimates for both teams.
+
+```{r improved_doubles_model}
+
+# generate sparse indicator matrices for both teams
+Wp1 <- weights_from_columns(atp_doubles[, c("team1_player1_name",
+                                            "team1_player2_name")])
+Wp2 <- weights_from_columns(atp_doubles[, c("team2_player1_name",
+                                            "team2_player2_name")])
+
+# create a Bradley-Terry/adversarial indicator matrix
+Wp <- bradleyterry_from_sparse(Wp1, Wp2)
+
+# fit GLMM
+m2 <- glmer(team1_win ~ 0 + (1 | player),
+            family = "binomial", memberships = list(player = Wp),
+            data = atp_doubles)
+
+# display model summary
+summary(m2)
+
+```
+
+
+```{r improved_doubles_plot, dpi = 300}
+
+# extract random effects
+m <- broom.mixed::tidy(m2, effects = "ran_vals", conf.int = TRUE) %>%
+  .[.$group == "player", ] %>%
+  .[order(.$estimate), ]
+
+# get top 10
+m <- m[(nrow(m) - 9):nrow(m), ]
+
+# plot top 10
+m[order(m$estimate),] |>
+  ggplot(aes(x = estimate, y = factor(level, level = level))) +
+  geom_point(size = 3, color = "coral1") +
+  geom_linerange(aes(xmin = conf.low, xmax = conf.high), size = 1, color = "coral1") +
+  theme_bw() + xlab("") + ylab("") +
+  ggtitle("Increase in log(odds ratio) of winning attributable to player") +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 12, angle = 60, hjust = 1.0),
+        axis.text.y = element_text(size = 12),
+        plot.title = element_text(size = 14),
+        rect = element_rect(fill = "transparent")) +
+  geom_vline(xintercept = 0, color = "coral2", size = 1.0)
+
+```
+
+As you can see, modeling team 2 player variability in conjunction with team 1 player variability using a Bradley-Terry style model has shrunk the uncertainty around our estimates of player strength, reflecting a higher level of confidence in these estimates.
+
+
+### Using nested/interaction multiple membership to find the player with the strongest year of the 2010s
+
+Players don't maintain a single level of performance across their whole career. They tend to start off weaker, then peak, and then fall off and eventually retire. Some players retire soon after their peak, while others keep playing at a lower level of performance for many years. Our model does not account for this change in player performance over time, but we can add the year in which a match was played to our random effects structure. This will let us identify which players had the strongest years of play during the 2010s.
+
+We'll use `Matrix::fac2sparse()` to generate the indicator matrix for the years, and then use the `lmerMultiMember::interaction_weights()` helper function to create a sparse indicator matrix for the interaction of the year and player random effects.
+
+```{r interaction_model}
+
+# get year in which tournament was played
+atp_doubles$year <- substr(atp_doubles$tourney_date, 1, 4)
+
+# create sparse matrix from years
+Wy <- Matrix::fac2sparse(atp_doubles$year)
+
+# generate sparse interaction matrix from sparse player and year matrices
+Wpy <- interaction_weights(Wp, Wy)
+
+# fit model
+m3 <- glmer(team1_win ~ 0 + (1 | playerXyear),
+            family = "binomial", memberships = list(playerXyear = Wpy),
+            data = atp_doubles)
+
+# print model summary
+summary(m3)
+
+```
+
+
+```{r interaction_plot, dpi = 300}
+
+# extract random effects
+m <- broom.mixed::tidy(m3, effects = "ran_vals", conf.int = TRUE) %>%
+  .[.$group == "playerXyear", ] %>%
+  .[order(.$estimate), ] %>%
+  mutate(level = gsub("\\.", " in ", level))
+
+# get top 10
+m <- m[(nrow(m) - 10):nrow(m), ]
+
+# plot top 10
+m[order(m$estimate),] |>
+  ggplot(aes(x = estimate, y = factor(level, level = level))) +
+  geom_point(size = 3, color = "coral1") +
+  geom_linerange(aes(xmin = conf.low, xmax = conf.high), size = 1, color = "coral1") +
+  theme_bw() + xlab("") + ylab("") +
+  ggtitle("Increase in log(odds ratio) of winning attributable to player") +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 12),
+        axis.text.y = element_text(size = 12),
+        plot.title = element_text(size = 14),
+        rect = element_rect(fill = "transparent")) +
+  geom_vline(xintercept = 0, color = "coral2", size = 1.0)
+
+```
+
+When we plot the data like this, we can see that the player with the single strongest year of tennis during the 2010s was Marcelo Melo in 2015, with the Bryans' 2013 performance a close second[^2]. These estimates pass simple sanity checks: Marcelo Melo, for example, reached the number 1 spot on the ATP men's doubles ranking in 2015, which fits with it being a successful season. Likewise, the Bryans were ranked number 1 on the ATP men's doubles ranking in 2013.
+
+[^2]: It may seems strange to compare these estimates across years, given that 2013 Bob Bryan never actually played 2015 Marcelo Melo. However, as a measure of how dominant a player was relative to every other player that year, it is still interesting to compare random intercepts across years. If you object to the "strongest year" phrasing, you can choose to read this as "most dominant season".
+
+The uncertainty intervals on these estimates are larger than the intervals on the whole-decade strength estimates for each player. The previous model had ten times the observations/matches per player, so this increase in uncertainty is to be expected.
+
+
+### Some final notes
+
+This vignette is intended as a template and tutorial for using `lmerMultiMember`. It is not intended to be a definitive analysis of tennis player performance. There are many other factors one might want to consider when modeling tennis matches, but that's obviously beyond the scope of this vignette.
+
+If you have any questions or notes, feel free to reach out to the [authors](https://jvparidon.github.io/lmerMultiMember/authors.html). If you find an error or bug, please file an [issue](https://github.com/jvparidon/lmerMultiMember/issues/new) on the Github repository.
+
+If you want to get some practice with this package, one exercise we suggest would be to try modifying the code for the last model to identify the strongest player on each surface (clay, grass, hardcourt) instead of the strongest player by year.
