@@ -7,7 +7,7 @@
 \format{
 \subsection{\code{atp_doubles}}{
 
-A data frame with 13043 rows and 47 columns:
+A data frame with 13038 rows and 47 columns:
 \describe{
 \item{tourney_id}{Unique identifier for the tournamens}
 \item{tourney_name}{Name of the tournament}
