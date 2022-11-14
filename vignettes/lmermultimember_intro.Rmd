@@ -45,10 +45,10 @@ We have results for ATP men's doubles tennis matches from 2010 to 2019, compiled
 data("atp_doubles", package = "lmerMultiMember")
 
 # display the first 1000 matches in the ATP doubles dataset
-atp_doubles |>
-  head(1000) |>
-  kable() |>
-  kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 16) |>
+atp_doubles %>%
+  head(1000) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"), font_size = 16) %>%
   scroll_box(height = "250px")
 
 ```
@@ -101,25 +101,24 @@ To view the strongest players according to this model, we can extract the random
 ```{r doubles_plot, dpi = 300}
 
 # extract random effects
-m <- broom.mixed::tidy(m1, effects = "ran_vals", conf.int = TRUE) %>%
+m1_ranefs <- broom.mixed::tidy(m1, effects = "ran_vals", conf.int = TRUE) %>%
   .[.$group == "team1_player", ] %>%
-  .[order(.$estimate), ]
-
-# get top 10
-m <- m[(nrow(m) - 9):nrow(m), ]
+  .[order(.$estimate, decreasing = TRUE), ]
 
 # plot top 10
-m[order(m$estimate),] |>
+m1_ranefs[1:10, ] %>%
   ggplot(aes(x = estimate, y = factor(level, level = level))) +
   geom_point(size = 3, color = "coral1") +
-  geom_linerange(aes(xmin = conf.low, xmax = conf.high), size = 1, color = "coral1") +
+  geom_linerange(aes(xmin = conf.low, xmax = conf.high),
+                 size = 1, color = "coral1") +
   theme_bw() + xlab("") + ylab("") +
-  ggtitle("Increase in log(odds ratio) of winning attributable to player") +
+  ggtitle("Increase in log(odds ratio) associated with player") +
   theme(axis.ticks = element_blank(),
         axis.text.x = element_text(size = 12, angle = 60, hjust = 1.0),
         axis.text.y = element_text(size = 12),
         plot.title = element_text(size = 14),
         rect = element_rect(fill = "transparent")) +
+  scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, color = "coral2", size = 1.0)
 
 ```
@@ -159,25 +158,24 @@ You may have noticed that the multiple membership summary line at the bottom of 
 ```{r improved_doubles_plot, dpi = 300}
 
 # extract random effects
-m <- broom.mixed::tidy(m2, effects = "ran_vals", conf.int = TRUE) %>%
+m2_ranefs <- broom.mixed::tidy(m2, effects = "ran_vals", conf.int = TRUE) %>%
   .[.$group == "player", ] %>%
-  .[order(.$estimate), ]
-
-# get top 10
-m <- m[(nrow(m) - 9):nrow(m), ]
+  .[order(.$estimate, decreasing = TRUE), ]
 
 # plot top 10
-m[order(m$estimate),] |>
+m2_ranefs[1:10, ] %>%
   ggplot(aes(x = estimate, y = factor(level, level = level))) +
   geom_point(size = 3, color = "coral1") +
-  geom_linerange(aes(xmin = conf.low, xmax = conf.high), size = 1, color = "coral1") +
+  geom_linerange(aes(xmin = conf.low, xmax = conf.high),
+                 size = 1, color = "coral1") +
   theme_bw() + xlab("") + ylab("") +
-  ggtitle("Increase in log(odds ratio) of winning attributable to player") +
+  ggtitle("Increase in log(odds ratio) associated with player") +
   theme(axis.ticks = element_blank(),
         axis.text.x = element_text(size = 12, angle = 60, hjust = 1.0),
         axis.text.y = element_text(size = 12),
         plot.title = element_text(size = 14),
         rect = element_rect(fill = "transparent")) +
+  scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, color = "coral2", size = 1.0)
 
 ```
@@ -216,26 +214,25 @@ summary(m3)
 ```{r interaction_plot, dpi = 300}
 
 # extract random effects
-m <- broom.mixed::tidy(m3, effects = "ran_vals", conf.int = TRUE) %>%
+m3_ranefs <- broom.mixed::tidy(m3, effects = "ran_vals", conf.int = TRUE) %>%
   .[.$group == "playerXyear", ] %>%
-  .[order(.$estimate), ] %>%
+  .[order(.$estimate, decreasing = TRUE), ] %>%
   mutate(level = gsub("\\.", " in ", level))
 
-# get top 10
-m <- m[(nrow(m) - 10):nrow(m), ]
-
 # plot top 10
-m[order(m$estimate),] |>
+m3_ranefs[1:10, ] %>%
   ggplot(aes(x = estimate, y = factor(level, level = level))) +
   geom_point(size = 3, color = "coral1") +
-  geom_linerange(aes(xmin = conf.low, xmax = conf.high), size = 1, color = "coral1") +
+  geom_linerange(aes(xmin = conf.low, xmax = conf.high),
+                 size = 1, color = "coral1") +
   theme_bw() + xlab("") + ylab("") +
-  ggtitle("Increase in log(odds ratio) of winning attributable to player") +
+  ggtitle("Increase in log(odds ratio) associated with player") +
   theme(axis.ticks = element_blank(),
-        axis.text.x = element_text(size = 12),
+        axis.text.x = element_text(size = 12, angle = 60, hjust = 1.0),
         axis.text.y = element_text(size = 12),
         plot.title = element_text(size = 14),
         rect = element_rect(fill = "transparent")) +
+  scale_y_discrete(limits = rev) +
   geom_vline(xintercept = 0, color = "coral2", size = 1.0)
 
 ```
