@@ -74,9 +74,9 @@ update(matplot, xlab = "Team 1 players", ylab = "Match")
 
 As you can see, the indicator matrix has 1s (gray, filled squares) for the players in a match, and 0s (empty space) everywhere else. There are two players in team 1 in each match, so for each row/match in the matrix, you'll find two filled squares.
 
-Next, we generate the indicator matrix `Wp` for the players in team 1 across _all_ matches in our dataset and fit a GLMM to predict match winners from that indicator matrix. We explicitly set the global intercept to 0, because there shouldn't be any systematic advantage for team 1 over team 2 when we model the whole dataset[^1].
+Next, we generate the indicator matrix `Wp` for the players in team 1 across _all_ matches in our dataset and fit a GLMM to predict match winners from that indicator matrix. We explicitly set the global intercept to 0, because there shouldn't be any systematic advantage for team 1 over team 2 when we model the whole dataset.[^2]
 
-[^1]: Which team is team 1 and which is team 2 is randomly assigned and entirely arbitrary in this dataset.
+[^2]: Which team is team 1 and which is team 2 is randomly assigned and entirely arbitrary in this dataset.
 
 ```{r doubles_model}
 
@@ -240,9 +240,9 @@ m[order(m$estimate),] |>
 
 ```
 
-When we plot the data like this, we can see that the player with the single strongest year of tennis during the 2010s was Marcelo Melo in 2015, with the Bryans' 2013 performance a close second[^2]. These estimates pass simple sanity checks: Marcelo Melo, for example, reached the number 1 spot on the ATP men's doubles ranking in 2015, which fits with it being a successful season. Likewise, the Bryans were ranked number 1 on the ATP men's doubles ranking in 2013.
+When we plot the data like this, we can see that the player with the single strongest year of tennis during the 2010s was Marcelo Melo in 2015, with the Bryans' 2013 performance a close second.[^3] These estimates pass simple sanity checks: Marcelo Melo, for example, reached the number 1 spot on the ATP men's doubles ranking in 2015, which fits with it being a successful season. Likewise, the Bryans were ranked number 1 on the ATP men's doubles ranking in 2013.
 
-[^2]: It may seems strange to compare these estimates across years, given that 2013 Bob Bryan never actually played 2015 Marcelo Melo. However, as a measure of how dominant a player was relative to every other player that year, it is still interesting to compare random intercepts across years. If you object to the "strongest year" phrasing, you can choose to read this as "most dominant season".
+[^3]: It may seems strange to compare these estimates across years, given that 2013 Bob Bryan never actually played 2015 Marcelo Melo. However, as a measure of how dominant a player was relative to every other player that year, it is still interesting to compare random intercepts across years. If you object to the "strongest year" phrasing, you can choose to read this as "most dominant season".
 
 The uncertainty intervals on these estimates are larger than the intervals on the whole-decade strength estimates for each player. The previous model had ten times the observations/matches per player, so this increase in uncertainty is to be expected.
 
