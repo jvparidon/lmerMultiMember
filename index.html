@@ -39,7 +39,7 @@
     
     <a class="navbar-brand me-2" href="index.html">lmerMultiMember</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.11.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.11.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,10 +54,10 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="articles/bradleyterry_models.html">Bradley-Terry models in lmerMultiMember</a>
-    <a class="dropdown-item" href="articles/faq.html">Frequently Asked Questions</a>
-    <a class="dropdown-item" href="articles/group_membership.html">Group membership models using lmerMultiMember</a>
     <a class="dropdown-item" href="articles/lmermultimember_intro.html">Introduction to lmerMultiMember</a>
+    <a class="dropdown-item" href="articles/bradleyterry_models.html">Bradley-Terry models in lmerMultiMember</a>
+    <a class="dropdown-item" href="articles/group_membership.html">Group membership models using lmerMultiMember</a>
+    <a class="dropdown-item" href="articles/faq.html">Frequently Asked Questions</a>
   </div>
 </li>
       </ul>
@@ -100,6 +100,18 @@
 <span><span class="fu">install_github</span><span class="op">(</span><span class="st">"jvparidon/lmerMultiMember"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
+<h3 id="how-to-use-lmermultimember">How to use <code>lmerMultiMember</code>
+<a class="anchor" aria-label="anchor" href="#how-to-use-lmermultimember"></a>
+</h3>
+<p>If you want to learn how to use <code>lmerMultiMember</code>, a good start would be finish reading this README. After that, you can check out the package vignettes for more information about specific topics:</p>
+<ol style="list-style-type: decimal">
+<li><a href="https://jvparidon.github.io/lmerMultiMember/articles/lmermultimember_intro.html">General introduction to multiple membership models</a></li>
+<li><a href="https://jvparidon.github.io/lmerMultiMember/articles/bradleyterry_models.html">Bradley-Terry models in <code>lmerMultiMember</code></a></li>
+<li><a href="https://jvparidon.github.io/lmerMultiMember/articles/group_membership.html">The original multiple membership vignette (Ben Bolker’s worked example that inspired this package)</a></li>
+<li><a href="https://jvparidon.github.io/lmerMultiMember/articles/faq.html">Frequently Asked Questions</a></li>
+</ol>
+</div>
+<div class="section level3">
 <h3 id="what-is-a-multimembership-random-effect">What is a multimembership random effect?<a class="anchor" aria-label="anchor" href="#what-is-a-multimembership-random-effect"></a>
 </h3>
 <p>Let’s take authorship as an example: If we want to model some aspect of published journal articles, e.g. <code>citations ~ word_count</code>, we might want to account for variability caused by the authors of papers by using random intercepts. However, many papers don’t have just a single author. How do we account for author variability then?</p>
@@ -110,7 +122,7 @@
 <div class="section level3">
 <h3 id="how-to-specify-a-multimembership-random-effect">How to specify a multimembership random effect<a class="anchor" aria-label="anchor" href="#how-to-specify-a-multimembership-random-effect"></a>
 </h3>
-<p>Specifying a multimembership model in <code>lmerMultiMember</code> works just like specifying any other mixed effects model in <code>lme4</code>, with the addition of a membership matrix (or weight matrix). This sparse matrix contains rows for all the observations in your dataset and columns for each unique group member. For each observation, the matrix contains 1s for all the group members associated with it, with 0s everywhere else. (If group members should not have equal association strength, the 1s in the membership matrix can, in principle, be replaces with fractions to represent relative contributions, etc.) The model syntax could then be e.g. <code>lmerMultiMember::lmer(citations ~ word_count + (1|author), memberships=list(author=membership_matrix))</code>.</p>
+<p>Specifying a multimembership model in <code>lmerMultiMember</code> works just like specifying any other mixed effects model in <code>lme4</code>, with the addition of a membership matrix (or weight matrix). This sparse matrix contains rows for all the observations in your dataset and columns for each unique group member. For each observation, the matrix contains 1s for all the group members associated with it, with 0s everywhere else. (If group members should not have equal association strength, the 1s in the membership matrix can, in principle, be replaces with fractions to represent relative contributions, etc.) The model syntax could then be e.g. <code>lmerMultiMember::lmer(citations ~ word_count + (1 | author), memberships = list(author = membership_matrix))</code>.</p>
 <p>Creating a membership matrix might seem a little daunting, but we provide a helper function <code><a href="reference/weights_from_vector.html">lmerMultiMember::weights_from_vector</a></code> that creates a membership matrix from a vector of group memberships in comma-separated strings (e.g. <code>c("A,B", "A,B,C", "B", "C,A")</code>) so if you have group memberships documented in your dataset it should be easy enough to create a membership matrix for you model.</p>
 </div>
 <div class="section level3">
@@ -118,15 +130,16 @@
 </h3>
 <p><code>lmerMultiMember</code> uses dummy variables and fake factors internally to ‘trick’ <code>lme4</code> into accepting multiple membership random effects. Unfortunately, that system of dummies and fakes means that you can’t specify a nested multimembership random effects grouping using the normal formula syntax. For example, <code>lmer(citations ~ word_count + (1 | journal/author), memberships = list(author = membership_matrix))</code> will throw an error, because the multiple membership author variable cannot be nested inside the journal grouping.</p>
 <p>The solution for this issue is to pre-generate an indicator/weight matrix for the nested grouping using the provided <code><a href="reference/interaction_weights.html">lmerMultiMember::interaction_weights()</a></code> function. For example, given a dataframe <code>df</code> with multimembership <code>author</code> and single membership <code>journal</code> grouping variables, in order to get nested groupings, we could do the following:</p>
-<pre><code><span><span class="va">Wa</span> <span class="op">&lt;-</span> <span class="fu">weights_from_vectors</span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">author</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">Wa</span> <span class="op">&lt;-</span> <span class="fu">weights_from_vectors</span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">author</span><span class="op">)</span></span>
 <span><span class="va">Wj</span> <span class="op">&lt;-</span> <span class="fu">Matrix</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/sparse.model.matrix.html" class="external-link">fac2sparse</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">journal</span><span class="op">)</span>  <span class="co"># convert single membership vars to an indicator matrix with fac2sparse()</span></span>
 <span><span class="va">Waj</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/interaction_weights.html">interaction_weights</a></span><span class="op">(</span><span class="va">Wa</span>, <span class="va">Wj</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/lmer.html">lmer</a></span><span class="op">(</span><span class="va">citations</span> <span class="op">~</span> <span class="va">word_count</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">journal</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">authorXjournal</span><span class="op">)</span>, memberships <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>authorXjournal <span class="op">=</span> <span class="va">Waj</span><span class="op">)</span><span class="op">)</span></span></code></pre>
+<span><span class="fu"><a href="reference/lmer.html">lmer</a></span><span class="op">(</span><span class="va">citations</span> <span class="op">~</span> <span class="va">word_count</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">journal</span><span class="op">)</span> <span class="op">+</span> <span class="op">(</span><span class="fl">1</span> <span class="op">|</span> <span class="va">authorXjournal</span><span class="op">)</span>, memberships <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>authorXjournal <span class="op">=</span> <span class="va">Waj</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="contact">Contact<a class="anchor" aria-label="anchor" href="#contact"></a>
 </h3>
-<p>If you have any issues fitting models with <code>lmerMultiMember</code>, feel free to contact Jeroen van Paridon at <a href="mailto:vanparidon@wisc.edu">vanparidon@wisc.edu</a>.</p>
+<p>If you have any issues fitting models with <code>lmerMultiMember</code>, feel free to contact JP van Paridon at <a href="mailto:vanparidon@wisc.edu">vanparidon@wisc.edu</a>. If you find an error or bug, please file an <a href="https://github.com/jvparidon/lmerMultiMember/issues/new" class="external-link">issue</a> on the Github repository.</p>
 </div>
 </div>
 
