@@ -15,6 +15,14 @@ if(!require(devtools)){
 install_github("jvparidon/lmerMultiMember")
 ```
 
+### How to use `lmerMultiMember`
+If you want to learn how to use `lmerMultiMember`, a good start would be finish reading this README. After that, you can check out the package vignettes for more information about specific topics:
+
+1. [General introduction to multiple membership models](https://jvparidon.github.io/lmerMultiMember/articles/lmermultimember_intro.html)
+2. [Bradley-Terry models in `lmerMultiMember`](https://jvparidon.github.io/lmerMultiMember/articles/bradleyterry_models.html)
+3. [The original multiple membership vignette (Ben Bolker's worked example that inspired this package)](https://jvparidon.github.io/lmerMultiMember/articles/group_membership.html)
+4. [Frequently Asked Questions](https://jvparidon.github.io/lmerMultiMember/articles/faq.html)
+
 ### What is a multimembership random effect?
 Let's take authorship as an example: If we want to model some aspect of published journal articles, e.g. `citations ~ word_count`, we might want to account for variability caused by the authors of papers by using random intercepts. However, many papers don't have just a single author. How do we account for author variability then?  
 
@@ -25,7 +33,7 @@ Another option is to have separate random effects for each position in the autho
 The most natural option would be to associate each observation (journal article) with multiple levels (authors) of a single random effect. This is a multimembership random effect.  
 
 ### How to specify a multimembership random effect
-Specifying a multimembership model in `lmerMultiMember` works just like specifying any other mixed effects model in `lme4`, with the addition of a membership matrix (or weight matrix). This sparse matrix contains rows for all the observations in your dataset and columns for each unique group member. For each observation, the matrix contains 1s for all the group members associated with it, with 0s everywhere else. (If group members should not have equal association strength, the 1s in the membership matrix can, in principle, be replaces with fractions to represent relative contributions, etc.) The model syntax could then be e.g. `lmerMultiMember::lmer(citations ~ word_count + (1|author), memberships=list(author=membership_matrix))`.  
+Specifying a multimembership model in `lmerMultiMember` works just like specifying any other mixed effects model in `lme4`, with the addition of a membership matrix (or weight matrix). This sparse matrix contains rows for all the observations in your dataset and columns for each unique group member. For each observation, the matrix contains 1s for all the group members associated with it, with 0s everywhere else. (If group members should not have equal association strength, the 1s in the membership matrix can, in principle, be replaces with fractions to represent relative contributions, etc.) The model syntax could then be e.g. `lmerMultiMember::lmer(citations ~ word_count + (1 | author), memberships = list(author = membership_matrix))`.  
 
 Creating a membership matrix might seem a little daunting, but we provide a helper function `lmerMultiMember::weights_from_vector` that creates a membership matrix from a vector of group memberships in comma-separated strings (e.g. `c("A,B", "A,B,C", "B", "C,A")`) so if you have group memberships documented in your dataset it should be easy enough to create a membership matrix for you model.  
 
@@ -35,7 +43,7 @@ Creating a membership matrix might seem a little daunting, but we provide a help
 
 The solution for this issue is to pre-generate an indicator/weight matrix for the nested grouping using the provided `lmerMultiMember::interaction_weights()` function. For example, given a dataframe `df` with multimembership `author` and single membership `journal` grouping variables, in order to get nested groupings, we could do the following:
 
-```
+```r
 Wa <- weights_from_vectors(df$author)
 Wj <- Matrix::fac2sparse(df$journal)  # convert single membership vars to an indicator matrix with fac2sparse()
 Waj <- interaction_weights(Wa, Wj)
@@ -43,4 +51,4 @@ lmer(citations ~ word_count + (1 | journal) + (1 | authorXjournal), memberships 
 ```
 
 ### Contact
-If you have any issues fitting models with `lmerMultiMember`, feel free to contact Jeroen van Paridon at [vanparidon@wisc.edu](mailto:vanparidon@wisc.edu).
+If you have any issues fitting models with `lmerMultiMember`, feel free to contact JP van Paridon at [vanparidon@wisc.edu](mailto:vanparidon@wisc.edu). If you find an error or bug, please file an [issue](https://github.com/jvparidon/lmerMultiMember/issues/new) on the Github repository.

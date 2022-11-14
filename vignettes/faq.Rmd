@@ -1,8 +1,8 @@
 ---
 title: "Frequently Asked Questions"
 output: rmarkdown::html_vignette
-author: "Jeroen van Paridon"
-date: "2022-11-07"
+author: "JP van Paridon"
+date: "2022-11-10"
 vignette: >
   %\VignetteIndexEntry{Frequently Asked Questions}
   \usepackage[utf8]{inputenc}
@@ -11,30 +11,60 @@ editor_options:
   chunk_output_type: inline
 ---
 
-### What is the difference between crossed random effects and a multiple membership model?
+### What is the difference between crossed random effects and multiple membership random effects?
 
-Multiple membership is not the same as crossed random effects: In a crossed random effects model, each observation can be associated with a **single** level of multiple, independent random effects (i.e. the random effects do not have to be nested). In a multiple membership model, each observation can be associated with **multiple** levels of a single random effect.
+Multiple membership is not the same as crossed random effects: In a crossed random effects model, each observation can be associated with a _single_ level of multiple, independent random effects (i.e. the random effects do not have to be nested). In a multiple membership model, each observation can be associated with _multiple_ levels of a single random effect.
 
-`lme4` supports fully crossed random effects (whereas e.g. `nlme` does not), but not multiple membership models. `lmerMultiMember` adds support for multiple membership models to `lme4`, while still supporting fully crossed random effects at the same time.
+`lme4` supports fully crossed random effects (whereas e.g. `nlme` does not), but not multiple membership models. `lmerMultiMember` adds support for multiple membership models to `lme4`, in addition to the existing support for fully crossed random effects.
 
 
-### I tried using another package to plot/summarize/etc. an `lmerMultiMember` model, but it didn't work?
+### What are multiple membership models used for?
 
-Since `lmerMultiMember` model objects behave much like `lme4` model objects (i.e. they "inherit" the model class from `lme4`) you can generally use them as if they are the same. However, some packages (e.g. `sjPlot`) are very strict about recognizing models and will sometimes not accept `lmerMultiMember` models.
+In general, multiple memberships models are useful when each observation in your data is not associated with just a single participant/patient/etc. but with multiple participants in variable compositions.
 
-There is an easy workaround that usually works (no guarantees though!) which is to force the `lmerMultiMember` to have the same class as an `lme4` or `lmerTest` model:
+One example is team sports, where a team's performance is attributable to the input of multiple players, but the players that a team starts in any given game may be variable. To derive a measure of an individual athlete's performance, you'll need to model the multiple membership structure.
+
+Another example is in psychological experiments that involve multiple people interacting (e.g. iterated learning experiments). The outcome of an interaction depends on input from multiple participants, and unless there is a strict role assignment (e.g. one participant can talk, the other can only listen) it makes sense to model participant random effects using multiple membership.
+
+`lmerMultiMember` is pretty new, but we've already heard from researchers in various fields that they're using it to extend `lme4` so they can model data that requires multiple membership models. From marine ecology, where it has been used to model species diversity off the California coast, to modeling health outcomes in patients with multiple comorbidities, to modeling genomic data, to the lead authors' own work in experimental psychology.
+
+If you're using `lmerMultiMember` to model something new and exciting, let us know!
+
+
+### `lmerMultiMember` assumes that levels of a random effect are additive, but what if I don't want to make that assumption?
+
+It is true that `lmerMultiMember` assumes additive effects (e.g. a relay race's outcome is determined by the sum of individual runner's speeds) and that this assumption may not hold for whatever process you are trying to model. Other assumptions than additivity can be built into a multiple membership model, but at this point you are probably going to need to write a custom Bayesian model in e.g. Stan. If you think this is something you need to do, we recommend that you A) really think hard about this assumption (additivity is pretty reasonable, so make sure you really need to deviate from it) and B) send us an email if you need any help.
+
+
+### `lmerMultiMember` says the number of levels in my grouping factor exceeds the number of observations!
+
+It is hard to fit random effects when there are not enough observations for each level of the random effect. `lmerMultiMember` requires you to have at least as many observations as you have levels of each random effect, but this is the absolute lower limit and you should absolutely strive to have more than that for reliable estimation.
+
+In `lme4`, the need to have at least as many observations as levels of each random effect is a hard technical/mathematical requirement. the math behind `lmerMultiMember` makes it technically possible to fit models with fewer observations than levels of a random effect in some cases, but determining the lowest acceptable of number of observations for a given model is not trivial, so for now we are simply using the same rule that `lme4` uses for convenience.
+
+
+### I tried using another package to plot/summarize/etc. an `lmerMultiMember` model, but I got an error!
+
+Since `lmerMultiMember` model objects behave much like `lme4` model objects (they "inherit" the model class from `lme4`) you can generally use them as you would use an `lme4` model. However, some packages (e.g. `sjPlot`) are very strict about recognizing models and will sometimes reject `lmerMultiMember` models by throwing an error.
+
+Luckily, there is an easy workaround that is often successful, which is to coerce the `lmerMultiMember` model object to have the class of an `lme4` or `lmerTest` model:
 
 ```{r eval = FALSE}
 class(m_lmer) <- "lmerMod"  # for lmer models
 class(m_glmer) <- "glmerMod"  # for glmer models
-class(m_lmer) <- "lmerModLmerTest"  # if you have lmerTest installed
+class(m_lmer) <- "lmerModLmerTest"  # if you want to use lmerTest functionality
 ```
 
-Keep in mind that this change is superficial; it is just a trick and some things may still not work.
+Keep in mind that this change is just a trick; it is a superficial change and some packages may still throw errors. If this happens, please help us help you by reporting the [issue](https://github.com/jvparidon/lmerMultiMember/issues/new) on the `lmerMultiMember` Github repo, and we will take a look to see if we can fix it/convince the author of the other package to add support for `lmerMultiMember`.
 
 
-### Why is this functionality not part of `lme4` already?
+### Why are multiple membership models not part of `lme4` already?
 
-`lme4` did not have this functionality originally because it is not the most common use-case and it turns out to be kind of hard to implement in an elegant way. It is probably unhelpful for most `lme4` users if the syntax has to be altered to support 
+`lme4` did not support multiple membership models originally because it is a less common use-case than single membership models and it turns out to be kind of hard to implement in an elegant way. The combination of these issues probably makes it hard to justify doing things like changing the `lme4` syntax just to support this functionality.
 
-Another reason not to try to subsume `lmerMultiMember` into `lme4` is that the latter is kind of in maintenance mode, with most development focusing on compatibility and bugfixes, while `lmerMultiMember` is still a little experimental and might still undergo major changes.
+We're not pushing to absorb `lmerMultiMember` into `lme4` either, because the latter is kind of in maintenance mode and very stable, with most development focusing on compatibility and bugfixes, while `lmerMultiMember` is still a little experimental and might still undergo major changes.
+
+
+### How should I cite `lmerMultiMember`?
+
+We appreciate you citing `lmerMultiMember` if you're publishing research that uses the package. You can find citation information on the [author page](https://jvparidon.github.io/lmerMultiMember/authors.html#citation).

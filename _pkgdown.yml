@@ -8,6 +8,15 @@ authors:
   footer:
     roles: [cre]
 
+articles:
+- title: Vignettes
+  navbar: ~
+  contents:
+  - lmermultimember_intro
+  - bradleyterry_models
+  - group_membership
+  - faq
+
 template:
   bootstrap: 5
   bootswatch: simplex

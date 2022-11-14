@@ -73,13 +73,16 @@ interaction_weights <- function(a, b) {
   abrows <- as.character(interaction(expand.grid(rownames(a), rownames(b))))
   ab <- Matrix::Matrix(0, nrow = length(abrows), ncol = ncol(a),
                        dimnames = list(abrows, colnames(a)))
+
+  # this is an inefficient algorithm, especially for large matrices
+  # TODO: refactor this to avoid looping/indexing repeatedly
   for (i in seq_along(rownames(a))) {
     for (j in seq_along(rownames(b))) {
       ab[((j - 1) * length(rownames(a))) + i, ] <-
         a[i, , drop = FALSE] * b[j, , drop = FALSE]
     }
   }
-  return(ab)
+  return(ab[sort(rownames(ab)), ])
 }
 
 
@@ -104,7 +107,40 @@ bradleyterry_from_vectors <- function(winners, losers) {
   Wb <- Matrix::fac2sparse(losers)
 
   # create empty sparse matrix with rows from union of Wa and Wb rownames
-  Wab_rownames <- union(rownames(Wa), rownames(Wb))
+  Wab_rownames <- sort(union(rownames(Wa), rownames(Wb)))
+  Wab <- Matrix::Matrix(0, nrow = length(Wab_rownames), ncol = ncol(Wa),
+                        dimnames = list(Wab_rownames, as.character(1:nobs)))
+
+  # fill sparse matrix with Wa indicators and negative Wb indicators
+  Wab[rownames(Wa), ] <- Wa
+  Wab[rownames(Wb), ] <- Wab[rownames(Wb), ] - Wb
+
+  # return sparse Bradley-Terry indicator matrix
+  return(Wab)
+}
+
+
+#' @title Indicator matrix from two sparse matrices for Bradley-Terry models
+#' @description Provides a helper function for generating indicator matrices
+#' @name bradleyterry_from_sparse
+#' @param winners sparse matrix containing the winner for each observation
+#' @param losers sparse matrix containing the loser for each observation
+#' @return sparse Bradley-Terry indicator matrix of type Matrix::dgCMatrix
+#' @export
+#' @examples
+#' winners <- Matrix::fac2sparse(c("k", "k", "l", "m", "m"))
+#' losers <- Matrix::fac2sparse(c("l", "m", "m", "k", "l"))
+#' Wwl <- bradleyterry_from_sparse(winners, losers)
+bradleyterry_from_sparse <- function(winners, losers) {
+
+  Wa <- winners
+  Wb <- losers
+
+  # get number of observations
+  nobs <- ncol((Wa))
+
+  # create empty sparse matrix with rows from union of Wa and Wb rownames
+  Wab_rownames <- sort(union(rownames(Wa), rownames(Wb)))
   Wab <- Matrix::Matrix(0, nrow = length(Wab_rownames), ncol = ncol(Wa),
                         dimnames = list(Wab_rownames, as.character(1:nobs)))
 

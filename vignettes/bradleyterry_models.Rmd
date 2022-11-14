@@ -1,8 +1,8 @@
 ---
 title: "Bradley-Terry models in lmerMultiMember"
 output: rmarkdown::html_vignette
-author: "Jeroen van Paridon"
-date: "2022-10-26"
+author: "JP van Paridon"
+date: "2022-11-10"
 vignette: >
   %\VignetteIndexEntry{Bradley-Terry models in lmerMultiMember}
   \usepackage[utf8]{inputenc}
@@ -203,7 +203,7 @@ stan_post$color <- cut(stan_post$estimate, breaks = c(0, 1, Inf),
 
 # plot 95% HDIs
 stan_post[order(stan_post$estimate),] |>
-  ggplot(aes(y = estimate,x = factor(term, level = term), color = color)) +
+  ggplot(aes(y = estimate, x = factor(term, level = term), color = color)) +
   geom_point(size = 3) +
   geom_linerange(aes(ymin = conf.low, ymax = conf.high,
                      x = factor(term, level = term), color = color), size = 1) +
