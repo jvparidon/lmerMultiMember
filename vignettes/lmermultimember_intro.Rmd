@@ -154,6 +154,7 @@ summary(m2)
 
 ```
 
+You may have noticed that the multiple membership summary line at the bottom of the summary now indicates a min, mean, and max of 0 for the observations. That is because in a Bradley-Terry style adversarial effects model, the indicators for team 1 and team 2 cancel each other out (i.e. the indicators for team 1 are +1, whereas the indicators for team 2 are -1). This looks a little funny in the summary, but it's actually quite easy to tell if you specified your Bradley-Terry model correctly because the indicators should always sum to zero!
 
 ```{r improved_doubles_plot, dpi = 300}
 
