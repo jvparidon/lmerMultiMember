@@ -17,11 +17,14 @@ This vignette will walk you through an `lmerMultiMember` analysis of a dataset t
 
 ```{r setup, message = FALSE}
 
-# load packages
+# load a few packages that we will be using a lot
 library(lmerMultiMember)  # for dataset and modeling
 library(kableExtra)  # for displaying tabular data
 library(dplyr)  # for data manipulation
 library(ggplot2)  # for general plotting stuff
+
+# there are a few packages used in this vignette that are not loaded here
+# we will just call their functions using the :: operator as needed
 
 ```
 
@@ -208,6 +211,15 @@ m2_ranefs[1:10, ] %>%
 
 As you can see, modeling team 2 player variability in conjunction with team 1 player variability using a Bradley-Terry style model has shrunk the uncertainty around our estimates of player strength, reflecting a higher level of confidence in these estimates.
 
+We can confirm the intuition that this model fits better by comparing the log-likelihoods of both models.
+
+```{r lr_test}
+
+lmtest::lrtest(m1, m2)
+
+```
+
+Model 2 makes better within-sample predictions, as demonstrated by the lower log-likelihood, but most importantly it does so with the same number of parameters (the `Df` column in the summary shows `0`, for no difference in degrees of freedom). We did not add any random effects to model 1 to produce model 2, we are simply using the same random intercepts more sensibly.
 
 ### Using nested/interaction multiple membership to find the player with the strongest year of the 2010s
 
