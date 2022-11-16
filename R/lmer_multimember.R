@@ -629,6 +629,7 @@ plot_membership_matrix.default <- function(x, varname = NULL, ...) {
         alternating = 3
       )
     ),
+    lwd=0,
     ...
   )
 }
