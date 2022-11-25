@@ -27,6 +27,7 @@ Suggests:
     sjPlot,
     glmmTMB,
     lmerTest,
+    lmtest,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

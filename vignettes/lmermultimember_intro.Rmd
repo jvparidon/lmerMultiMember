@@ -17,11 +17,14 @@ This vignette will walk you through an `lmerMultiMember` analysis of a dataset t
 
 ```{r setup, message = FALSE}
 
-# load packages
+# load a few packages that we will be using a lot
 library(lmerMultiMember)  # for dataset and modeling
 library(kableExtra)  # for displaying tabular data
 library(dplyr)  # for data manipulation
 library(ggplot2)  # for general plotting stuff
+
+# there are a few packages used in this vignette that are not loaded here
+# we will just call their functions using the :: operator as needed
 
 ```
 
@@ -35,9 +38,9 @@ Tennis scores are a somewhat inconvenient outcome to model, because the number o
 
 [^1]: This nested system of best-of-N and minimal-advantage rules means that while scoring zero points against an opponent signifies bad performance, scoring a very large number of points does not signify that a team was much better than their opponent; a large number of points scored in a match means that both teams had difficulty gaining the minimal point advantage necessary to win games and sets, a sign that both teams were in fact quite evenly matched. The optimal score, then, occurs when a team is much stronger than their opponent and they only need just enough points to quickly win each game.
 
-Because modeling the score is a somewhat thorny problem, for this tutorial we will instead model match wins and losses, which we can do with a simple binomial GLMM (Generalized Linear Mixed-effects Model).
+Because modeling the score is a somewhat thorny problem, for this tutorial we will oversimplify a little bit and instead model match wins and losses, which we can do with a simple binomial GLMM (Generalized Linear Mixed-effects Model).
 
-We have results for ATP men's doubles tennis matches from 2010 to 2019, compiled Jeff Sackmann. This dataset is included with `lmerMultiMember`, so you if you have this package installed you can load it yourself and play around with it.
+We have results for ATP men's doubles tennis matches from 2010 to 2019, compiled by Jeff Sackmann. This dataset is included with `lmerMultiMember`, so you if you have this package installed you can load it yourself and play around with it.
 
 ```{r doubles_data}
 
@@ -62,17 +65,18 @@ To figure out which player is strongest, we'll model player effects using multip
 
 ```{r indicator_matrix}
 
-# generate sparse matrix for small bit of the datset
+# generate sparse matrix for small bit of the dataset
 Wt <- weights_from_columns(atp_doubles[1:5, c("team1_player1_name",
                                               "team1_player2_name")])
 
 # display matrix plot of the indicator matrix
 matplot <- plot_membership_matrix(Wt)
-update(matplot, xlab = "Team 1 players", ylab = "Match")
+update(matplot, xlab = "Team 1 players", ylab = "Match",
+       at = c(-1.001, .5, 1.001), col.regions = c("white", "coral1"))
 
 ```
 
-As you can see, the indicator matrix has 1s (gray, filled squares) for the players in a match, and 0s (empty space) everywhere else. There are two players in team 1 in each match, so for each row/match in the matrix, you'll find two filled squares.
+As you can see, the indicator matrix has 1s (filled squares) for the players in a match, and 0s (empty space) everywhere else. There are two players in team 1 in each match, so for each row/match in the matrix, you'll find two filled squares.
 
 Next, we generate the indicator matrix `Wp` for the players in team 1 across _all_ matches in our dataset and fit a GLMM to predict match winners from that indicator matrix. We explicitly set the global intercept to 0, because there shouldn't be any systematic advantage for team 1 over team 2 when we model the whole dataset.[^2]
 
@@ -132,6 +136,31 @@ One important drawback of how we've modeled player effects in our model is that 
 
 To account for team 2 player strength, we _could_ enter team 2 as another random intercept, but it's preferable to integrate team 2 player strength estimates with our team 1 player strength estimates. Many of the players in our dataset occur as both members of team 1 and members of team 2, so we'll want to make sure we share that information for player strength estimates across our estimates for both teams.
 
+One way to pool player strength estimates across both teams is to model a single random intercept per player, putting a negative indicator/weight on that random intercept when a player is on team 2 (i.e. that player is working against team 1 winning, which is the event for which we are modeling the probability!). This pools information about player strength across players' appearances on both teams, which should shrink the uncertainty around our estimates.
+
+```{r improved_indicator_matrix}
+
+# generate indicator matrices for both teams for part of the dataset
+Wp1 <- weights_from_columns(atp_doubles[1:5, c("team1_player1_name",
+                                            "team1_player2_name")])
+Wp2 <- weights_from_columns(atp_doubles[1:5, c("team2_player1_name",
+                                            "team2_player2_name")])
+
+# create a Bradley-Terry/adversarial indicator matrix
+Wp <- bradleyterry_from_sparse(Wp1, Wp2)
+
+# display matrix plot of the indicator matrix
+matplot <- plot_membership_matrix(Wp)
+cmap <- colorRampPalette(c("#6495ed", "white", "coral1"))(100)
+matplot$legend$right$args$key$col <- cmap
+update(matplot, xlab = "Players", ylab = "Match",
+       at = seq(-1.001, 1.001, length.out = 100),
+       col.regions = cmap)
+
+```
+
+This is a small part of our new indicator matrix. Positive indicators are still colored orange (_coral_, actually), but the new negative indicators are colored blue. There are two teams of two players, so four filled in squares per row/match, 2 orange and 2 blue squares. When we use this new indicator matrix in an `lmerMultiMember` model, the model becomes a type of Bradley-Terry model, a class of models that predicts win probabilities of competing items drawn from a single pool (players, in our case).
+
 ```{r improved_doubles_model}
 
 # generate sparse indicator matrices for both teams
@@ -182,6 +211,15 @@ m2_ranefs[1:10, ] %>%
 
 As you can see, modeling team 2 player variability in conjunction with team 1 player variability using a Bradley-Terry style model has shrunk the uncertainty around our estimates of player strength, reflecting a higher level of confidence in these estimates.
 
+We can confirm the intuition that this model fits better by comparing the log-likelihoods of both models.
+
+```{r lr_test}
+
+lmtest::lrtest(m1, m2)
+
+```
+
+Model 2 makes better within-sample predictions, as demonstrated by the lower log-likelihood, but most importantly it does so with the same number of parameters (the `Df` column in the summary shows `0`, for no difference in degrees of freedom). We did not add any random effects to model 1 to produce model 2, we are simply using the same random intercepts more sensibly.
 
 ### Using nested/interaction multiple membership to find the player with the strongest year of the 2010s
 
