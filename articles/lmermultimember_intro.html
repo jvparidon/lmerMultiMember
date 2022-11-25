@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_Pro-0.4.2/font.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_Pro-0.4.4/font.css" rel="stylesheet">
 <!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to lmerMultiMember">
@@ -108,11 +108,14 @@ the generalized linear mixed-effects model (GLMM) is assumed; if you
 would like to learn more about GLMMs you can refer to the
 <code>lme4</code> vignettes.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># load packages</span></span>
+<code class="sourceCode R"><span><span class="co"># load a few packages that we will be using a lot</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jvparidon.github.io/lmerMultiMember/">lmerMultiMember</a></span><span class="op">)</span>  <span class="co"># for dataset and modeling</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://haozhu233.github.io/kableExtra/" class="external-link">kableExtra</a></span><span class="op">)</span>  <span class="co"># for displaying tabular data</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span>  <span class="co"># for data manipulation</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>  <span class="co"># for general plotting stuff</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>  <span class="co"># for general plotting stuff</span></span>
+<span></span>
+<span><span class="co"># there are a few packages used in this vignette that are not loaded here</span></span>
+<span><span class="co"># we will just call their functions using the :: operator as needed</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="doubles-tennis-data">Doubles tennis data<a class="anchor" aria-label="anchor" href="#doubles-tennis-data"></a>
@@ -141,11 +144,11 @@ both teams were in fact quite evenly matched. The optimal score, then,
 occurs when a team is much stronger than their opponent and they only
 need just enough points to quickly win each game.&lt;/p&gt;"><sup>1</sup></a></p>
 <p>Because modeling the score is a somewhat thorny problem, for this
-tutorial we will instead model match wins and losses, which we can do
-with a simple binomial GLMM (Generalized Linear Mixed-effects
-Model).</p>
+tutorial we will oversimplify a little bit and instead model match wins
+and losses, which we can do with a simple binomial GLMM (Generalized
+Linear Mixed-effects Model).</p>
 <p>We have results for ATP men’s doubles tennis matches from 2010 to
-2019, compiled Jeff Sackmann. This dataset is included with
+2019, compiled by Jeff Sackmann. This dataset is included with
 <code>lmerMultiMember</code>, so you if you have this package installed
 you can load it yourself and play around with it.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -141539,18 +141542,19 @@ mean by that, we’ll generate the indicator matrix <code>Wt</code> for
 the players on team 1 in each of the first five matches in our dataset
 and plot it.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># generate sparse matrix for small bit of the datset</span></span>
+<code class="sourceCode R"><span><span class="co"># generate sparse matrix for small bit of the dataset</span></span>
 <span><span class="va">Wt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/weights_from_columns.html">weights_from_columns</a></span><span class="op">(</span><span class="va">atp_doubles</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"team1_player1_name"</span>,</span>
 <span>                                              <span class="st">"team1_player2_name"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># display matrix plot of the indicator matrix</span></span>
 <span><span class="va">matplot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_membership_matrix.html">plot_membership_matrix</a></span><span class="op">(</span><span class="va">Wt</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">matplot</span>, xlab <span class="op">=</span> <span class="st">"Team 1 players"</span>, ylab <span class="op">=</span> <span class="st">"Match"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">matplot</span>, xlab <span class="op">=</span> <span class="st">"Team 1 players"</span>, ylab <span class="op">=</span> <span class="st">"Match"</span>,</span>
+<span>       at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.001</span>, <span class="fl">.5</span>, <span class="fl">1.001</span><span class="op">)</span>, col.regions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"white"</span>, <span class="st">"coral1"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="lmermultimember_intro_files/figure-html/indicator_matrix-1.png" width="700"></p>
-<p>As you can see, the indicator matrix has 1s (gray, filled squares)
-for the players in a match, and 0s (empty space) everywhere else. There
-are two players in team 1 in each match, so for each row/match in the
-matrix, you’ll find two filled squares.</p>
+<p>As you can see, the indicator matrix has 1s (filled squares) for the
+players in a match, and 0s (empty space) everywhere else. There are two
+players in team 1 in each match, so for each row/match in the matrix,
+you’ll find two filled squares.</p>
 <p>Next, we generate the indicator matrix <code>Wp</code> for the
 players in team 1 across <em>all</em> matches in our dataset and fit a
 GLMM to predict match winners from that indicator matrix. We explicitly
@@ -141650,7 +141654,40 @@ player strength estimates with our team 1 player strength estimates.
 Many of the players in our dataset occur as both members of team 1 and
 members of team 2, so we’ll want to make sure we share that information
 for player strength estimates across our estimates for both teams.</p>
+<p>One way to pool player strength estimates across both teams is to
+model a single random intercept per player, putting a negative
+indicator/weight on that random intercept when a player is on team 2
+(i.e. that player is working against team 1 winning, which is the event
+for which we are modeling the probability!). This pools information
+about player strength across players’ appearances on both teams, which
+should shrink the uncertainty around our estimates.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># generate indicator matrices for both teams for part of the dataset</span></span>
+<span><span class="va">Wp1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/weights_from_columns.html">weights_from_columns</a></span><span class="op">(</span><span class="va">atp_doubles</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"team1_player1_name"</span>,</span>
+<span>                                            <span class="st">"team1_player2_name"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">Wp2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/weights_from_columns.html">weights_from_columns</a></span><span class="op">(</span><span class="va">atp_doubles</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"team2_player1_name"</span>,</span>
+<span>                                            <span class="st">"team2_player2_name"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># create a Bradley-Terry/adversarial indicator matrix</span></span>
+<span><span class="va">Wp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bradleyterry_from_sparse.html">bradleyterry_from_sparse</a></span><span class="op">(</span><span class="va">Wp1</span>, <span class="va">Wp2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># display matrix plot of the indicator matrix</span></span>
+<span><span class="va">matplot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_membership_matrix.html">plot_membership_matrix</a></span><span class="op">(</span><span class="va">Wp</span><span class="op">)</span></span>
+<span><span class="va">cmap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/colorRamp.html" class="external-link">colorRampPalette</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"#6495ed"</span>, <span class="st">"white"</span>, <span class="st">"coral1"</span><span class="op">)</span><span class="op">)</span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
+<span><span class="va">matplot</span><span class="op">$</span><span class="va">legend</span><span class="op">$</span><span class="va">right</span><span class="op">$</span><span class="va">args</span><span class="op">$</span><span class="va">key</span><span class="op">$</span><span class="va">col</span> <span class="op">&lt;-</span> <span class="va">cmap</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">matplot</span>, xlab <span class="op">=</span> <span class="st">"Players"</span>, ylab <span class="op">=</span> <span class="st">"Match"</span>,</span>
+<span>       at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.001</span>, <span class="fl">1.001</span>, length.out <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>,</span>
+<span>       col.regions <span class="op">=</span> <span class="va">cmap</span><span class="op">)</span></span></code></pre></div>
+<p><img src="lmermultimember_intro_files/figure-html/improved_indicator_matrix-1.png" width="700"></p>
+<p>This is a small part of our new indicator matrix. Positive indicators
+are still colored orange (<em>coral</em>, actually), but the new
+negative indicators are colored blue. There are two teams of two
+players, so four filled in squares per row/match, 2 orange and 2 blue
+squares. When we use this new indicator matrix in an
+<code>lmerMultiMember</code> model, the model becomes a type of
+Bradley-Terry model, a class of models that predicts win probabilities
+of competing items drawn from a single pool (players, in our case).</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># generate sparse indicator matrices for both teams</span></span>
 <span><span class="va">Wp1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/weights_from_columns.html">weights_from_columns</a></span><span class="op">(</span><span class="va">atp_doubles</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"team1_player1_name"</span>,</span>
 <span>                                            <span class="st">"team1_player2_name"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -141697,7 +141734,7 @@ out (i.e. the indicators for team 1 are +1, whereas the indicators for
 team 2 are -1). This looks a little funny in the summary, but it’s
 actually quite easy to tell if you specified your Bradley-Terry model
 correctly because the indicators should always sum to zero!</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract random effects</span></span>
 <span><span class="va">m2_ranefs</span> <span class="op">&lt;-</span> <span class="fu">broom.mixed</span><span class="fu">::</span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">m2</span>, effects <span class="op">=</span> <span class="st">"ran_vals"</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="va">.</span><span class="op">[</span><span class="va">.</span><span class="op">$</span><span class="va">group</span> <span class="op">==</span> <span class="st">"player"</span>, <span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -141723,6 +141760,25 @@ correctly because the indicators should always sum to zero!</p>
 with team 1 player variability using a Bradley-Terry style model has
 shrunk the uncertainty around our estimates of player strength,
 reflecting a higher level of confidence in these estimates.</p>
+<p>We can confirm the intuition that this model fits better by comparing
+the log-likelihoods of both models.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">lmtest</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/lmtest/man/lrtest.html" class="external-link">lrtest</a></span><span class="op">(</span><span class="va">m1</span>, <span class="va">m2</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Likelihood ratio test</span></span>
+<span><span class="co">## </span></span>
+<span><span class="co">## Model 1: team1_win ~ 0 + (1 | team1_player)</span></span>
+<span><span class="co">## Model 2: team1_win ~ 0 + (1 | player)</span></span>
+<span><span class="co">##   #Df  LogLik Df Chisq Pr(&gt;Chisq)    </span></span>
+<span><span class="co">## 1   1 -8870.1                        </span></span>
+<span><span class="co">## 2   1 -8343.1  0  1054  &lt; 2.2e-16 ***</span></span>
+<span><span class="co">## ---</span></span>
+<span><span class="co">## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre>
+<p>Model 2 makes better within-sample predictions, as demonstrated by
+the lower log-likelihood, but most importantly it does so with the same
+number of parameters (the <code>Df</code> column in the summary shows
+<code>0</code>, for no difference in degrees of freedom). We did not add
+any random effects to model 1 to produce model 2, we are simply using
+the same random intercepts more sensibly.</p>
 </div>
 <div class="section level3">
 <h3 id="using-nestedinteraction-multiple-membership-to-find-the-player-with-the-strongest-year-of-the-2010s">Using nested/interaction multiple membership to find the player with
@@ -141741,7 +141797,7 @@ matrix for the years, and then use the
 <code><a href="../reference/interaction_weights.html">lmerMultiMember::interaction_weights()</a></code> helper function to
 create a sparse indicator matrix for the interaction of the year and
 player random effects.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># get year in which tournament was played</span></span>
 <span><span class="va">atp_doubles</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">atp_doubles</span><span class="op">$</span><span class="va">tourney_date</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span></span>
@@ -141780,7 +141836,7 @@ player random effects.</p>
 <span><span class="co">## Group memberships per observation for multiple membership REs:</span></span>
 <span><span class="co">##             Min. per obs. Mean per obs. Max. per obs.</span></span>
 <span><span class="co">## playerXyear 0             0             0</span></span></code></pre>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract random effects</span></span>
 <span><span class="va">m3_ranefs</span> <span class="op">&lt;-</span> <span class="fu">broom.mixed</span><span class="fu">::</span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">m3</span>, effects <span class="op">=</span> <span class="st">"ran_vals"</span>, conf.int <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="va">.</span><span class="op">[</span><span class="va">.</span><span class="op">$</span><span class="va">group</span> <span class="op">==</span> <span class="st">"playerXyear"</span>, <span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
