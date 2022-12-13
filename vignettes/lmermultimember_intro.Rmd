@@ -40,6 +40,52 @@ Tennis scores are a somewhat inconvenient outcome to model, because the number o
 
 Because modeling the score is a somewhat thorny problem, for this tutorial we will oversimplify a little bit and instead model match wins and losses, which we can do with a simple binomial GLMM (Generalized Linear Mixed-effects Model).
 
+We can write this model out as follows:
+
+$$
+\operatorname{logit}(P(win)) = X\beta + Zu
+$$
+
+Where $X$ is the (dense) matrix of fixed effects predictors and $\beta$ is the vector of fixed effects coefficients. $Z$ is the (sparse) matrix of random effects indicators and $u$ is the vector of random effects (and we're using a logit-link to convert to probabilities).
+
+In a traditional mixed-effects model, the sparse indicator matrix $Z$ for each random effect would have exactly 1 indicator per observation, and look like this:
+
+$$
+Z = 
+\begin{bmatrix} 
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1 \\
+\end{bmatrix}
+$$
+
+The indicator matrix for a multiple membership model can have multiple indicators per case:
+
+$$
+Z = 
+\begin{bmatrix} 
+1 & 1 & 0 & 0 \\
+0 & 1 & 1 & 0 \\
+0 & 0 & 1 & 1 \\
+1 & 0 & 0 & 1 \\
+\end{bmatrix}
+$$
+
+More generally, we can specify arbitrary indicator or weight matrices for the random effects, including fractional weights and negative weights/indicators (a class of model known as Bradley-Terry models):
+
+$$
+Z = 
+\begin{bmatrix}
+1 & -1 & 0 & 0 \\
+0 & 1 & -1 & 0 \\
+0 & 0 & 1 & -1 \\
+-1 & 0 & 0 & 1 \\
+\end{bmatrix}
+$$
+
+In this vignette we'll use all three kinds of indicator matrices to see how best to model our doubles tennis dataset.
+
 We have results for ATP men's doubles tennis matches from 2010 to 2019, compiled by Jeff Sackmann. This dataset is included with `lmerMultiMember`, so you if you have this package installed you can load it yourself and play around with it.
 
 ```{r doubles_data}
@@ -216,6 +262,7 @@ We can confirm the intuition that this model fits better by comparing the log-li
 ```{r lr_test}
 
 lmtest::lrtest(m1, m2)
+anova(m1, m2)
 
 ```
 
