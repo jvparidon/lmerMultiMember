@@ -70,19 +70,27 @@ weights_from_columns <- function(membership_columns) {
 #' Wb <- Matrix::fac2sparse(b)
 #' Wab <- interaction_weights(Wa, Wb)
 interaction_weights <- function(a, b) {
-  abrows <- as.character(interaction(expand.grid(rownames(a), rownames(b))))
-  ab <- Matrix::Matrix(0, nrow = length(abrows), ncol = ncol(a),
-                       dimnames = list(abrows, colnames(a)))
 
-  # this is an inefficient algorithm, especially for large matrices
-  # TODO: refactor this to avoid looping/indexing repeatedly
-  for (i in seq_along(rownames(a))) {
-    for (j in seq_along(rownames(b))) {
-      ab[((j - 1) * length(rownames(a))) + i, ] <-
-        a[i, , drop = FALSE] * b[j, , drop = FALSE]
-    }
+  # check if a and b matrices contain same number of cases
+  if (ncol(a) != ncol(b)) {
+    stop("Matrices must have same number of observations/cases.")
   }
-  return(ab[sort(rownames(ab)), ])
+
+  # expand a and b rownames into rows for an ab matrix
+  abrows <- as.character(interaction(expand.grid(rownames(a), rownames(b))))
+
+  # expand a and b matrices by repeating their rows to match ab rows
+  # note a repeats using times pattern, while b repeats using each pattern
+  # then multiply a and b together to form ab
+  ab <- a[rep(1:nrow(a), times=length(abrows) / nrow(a)), ] *
+    b[rep(1:nrow(b), each=length(abrows) / nrow(b)), ]
+
+  # assign ab rownames
+  rownames(ab) <- abrows
+
+  # return ab matrix, with rows sorted alphabetically by row name
+  # this matches lme4 internal behavior
+  return(ab[sort(abrows), ])
 }
 
 
@@ -98,25 +106,8 @@ interaction_weights <- function(a, b) {
 #' losers <- c("l", "m", "m", "k", "l")
 #' Wwl <- bradleyterry_from_vectors(winners, losers)
 bradleyterry_from_vectors <- function(winners, losers) {
-
-  # get number of observations
-  nobs <- length(winners)
-
-  # cast winners and losers to sparse matrices
-  Wa <- Matrix::fac2sparse(winners)
-  Wb <- Matrix::fac2sparse(losers)
-
-  # create empty sparse matrix with rows from union of Wa and Wb rownames
-  Wab_rownames <- sort(union(rownames(Wa), rownames(Wb)))
-  Wab <- Matrix::Matrix(0, nrow = length(Wab_rownames), ncol = ncol(Wa),
-                        dimnames = list(Wab_rownames, as.character(1:nobs)))
-
-  # fill sparse matrix with Wa indicators and negative Wb indicators
-  Wab[rownames(Wa), ] <- Wa
-  Wab[rownames(Wb), ] <- Wab[rownames(Wb), ] - Wb
-
-  # return sparse Bradley-Terry indicator matrix
-  return(Wab)
+  return(bradleyterry_from_sparse(Matrix::fac2sparse(winners),
+                                  Matrix::fac2sparse(losers)))
 }
 
 
@@ -133,6 +124,7 @@ bradleyterry_from_vectors <- function(winners, losers) {
 #' Wwl <- bradleyterry_from_sparse(winners, losers)
 bradleyterry_from_sparse <- function(winners, losers) {
 
+  # reassign to shorter variable names
   Wa <- winners
   Wb <- losers
 
@@ -141,8 +133,12 @@ bradleyterry_from_sparse <- function(winners, losers) {
 
   # create empty sparse matrix with rows from union of Wa and Wb rownames
   Wab_rownames <- sort(union(rownames(Wa), rownames(Wb)))
-  Wab <- Matrix::Matrix(0, nrow = length(Wab_rownames), ncol = ncol(Wa),
-                        dimnames = list(Wab_rownames, as.character(1:nobs)))
+  Wab <- Matrix::Matrix(
+    0,
+    nrow = length(Wab_rownames),
+    ncol = ncol(Wa),
+    dimnames = list(Wab_rownames, as.character(1:nobs))
+  )
 
   # fill sparse matrix with Wa indicators and negative Wb indicators
   Wab[rownames(Wa), ] <- Wa
@@ -166,7 +162,7 @@ idx_to_weights <- function(idx, nobs) {
     0,
     nrow = length(groups),
     ncol = nobs,
-    dimnames = list(as.character(groups), as.character(seq(nobs)))
+    dimnames = list(as.character(groups), as.character(1:nobs))
   )
 
   # fill in sparse weight matrix with 1s for each group membership
