@@ -1,12 +1,12 @@
 pandoc: 2.19.2
-pkgdown: 2.0.6
+pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   bradleyterry_models: bradleyterry_models.html
   faq: faq.html
   group_membership: group_membership.html
   lmermultimember_intro: lmermultimember_intro.html
-last_built: 2022-12-14T05:30Z
+last_built: 2023-10-17T04:28Z
 urls:
   reference: https://jvparidon.github.io/lmerMultiMember/reference
   article: https://jvparidon.github.io/lmerMultiMember/articles
