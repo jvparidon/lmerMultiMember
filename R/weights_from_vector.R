@@ -157,6 +157,11 @@ idx_to_weights <- function(idx, nobs) {
   # convert group membership indices to numeric factors
   idx[] <- lapply(idx, function(x) as.numeric(factor(x)))
 
+  # sum values for each index
+  # (e.g. for when an observation has multiple members of the same group/class)
+  idx$count <- 1
+  idx <- aggregate(count ~ values + ind, data = idx, FUN = sum)
+
   # initialize sparse weight matrix with zeros
   weights <- Matrix::Matrix(
     0,
@@ -166,7 +171,7 @@ idx_to_weights <- function(idx, nobs) {
   )
 
   # fill in sparse weight matrix with 1s for each group membership
-  weights[as.matrix(idx)] <- 1
+  weights[as.matrix(idx[, c("values", "ind")])] <- idx$count
 
   # return sparse weight matrix
   return(weights)
