@@ -1,6 +1,6 @@
 Package: lmerMultiMember
 Title: Multiple membership random effects
-Version: 0.11.5
+Version: 0.11.8
 Authors@R: c(
   person("JP", "van Paridon", email = "jvparidon@gmail.com",
          role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5384-8772")),
@@ -14,7 +14,7 @@ Description: Provides a wrapper around lme4::lmer to allow for multimembership
 License: MIT
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Imports: Matrix, lme4, methods
 Suggests: 
     knitr,

@@ -62,6 +62,16 @@ lmer <- function(formula,
     )))
   }
 
+  # check if data has been passed in as dataframe
+  if (!is.data.frame(data)) {
+    # throw error
+    stop(paste0("'data' argument is not a dataframe. lmerMultiMember requires",
+                " that a dataframe containing all variables used in the model",
+                " formula is passed as the 'data' argument of the lmer call,",
+                " with the exception of the multiple membership matrices which",
+                " are specified through the 'memberships' argument."))
+  }
+
   # get names of multimembership variables
   multi_RE_names <- names(memberships)
 
@@ -238,6 +248,16 @@ glmer <- function(formula,
       contrasts = contrasts,
       devFunOnly = devFunOnly
     ))
+  }
+
+  # check if data has been passed in as dataframe
+  if (!is.data.frame(data)) {
+    # throw error
+    stop(paste0("'data' argument is not a dataframe. lmerMultiMember requires",
+                " that a dataframe containing all variables used in the model",
+                " formula is passed as the 'data' argument of the glmer call,",
+                " with the exception of the multiple membership matrices which",
+                " are specified through the 'memberships' argument."))
   }
 
   # get names of multimembership variables
