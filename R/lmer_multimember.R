@@ -63,9 +63,9 @@ lmer <- function(formula,
   }
 
   # check if data has been passed in as dataframe
-  if (is.null(data)) {
+  if (!is.data.frame(data)) {
     # throw error
-    stop(paste0("The 'data' argument cannot be NULL. lmerMultiMember requires",
+    stop(paste0("'data' argument is not a dataframe. lmerMultiMember requires",
                 " that a dataframe containing all variables used in the model",
                 " formula is passed as the 'data' argument of the lmer call,",
                 " with the exception of the multiple membership matrices which",
@@ -251,9 +251,9 @@ glmer <- function(formula,
   }
 
   # check if data has been passed in as dataframe
-  if (is.null(data)) {
+  if (!is.data.frame(data)) {
     # throw error
-    stop(paste0("The 'data' argument cannot be NULL. lmerMultiMember requires",
+    stop(paste0("'data' argument is not a dataframe. lmerMultiMember requires",
                 " that a dataframe containing all variables used in the model",
                 " formula is passed as the 'data' argument of the glmer call,",
                 " with the exception of the multiple membership matrices which",

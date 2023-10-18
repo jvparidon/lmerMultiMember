@@ -312,3 +312,18 @@ test_that("bootstrap and profile likelihood CIs work (and roughly match)", {
   # check that outcomes are equal with tolerance 1e-2
   expect_equal(bootstrap["x", ], profil["x", ], tolerance = 1e-2)
 })
+
+test_that("not passing a data arg to lmer or glmer throws error", {
+  x <- runif(60, 0, 1)
+  df <- data.frame(
+    x = x,
+    y = rnorm(60, 1, 1) + x,
+    memberships = rep(c("a", "b", "b,a"), 20),
+    other = rep(c("x", "y"), 30)
+  )
+  Wm <- weights_from_vector(df$memberships)
+  expect_error(lmer(y ~ x + (1 | members),
+                    memberships = list(members = Wm)))
+  expect_error(glmer(y ~ x + (1 | members),
+                     memberships = list(members = Wm)))
+})
